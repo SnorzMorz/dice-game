@@ -153,13 +153,31 @@ export function reducer(state, action) {
             };
         }
 
+        case 'APPLY_UPGRADE': {
+            const newState = action.upgrade.apply(state);
+            return {
+                ...newState,
+                phase: 'ROLL', // Return to the roll phase after applying the upgrade
+            };
+        }
+
         case 'NEXT_CHECKPOINT': {
             if (!state.shopAvailable) return state;
 
             const nextCheckpoint = state.checkpoint + 1;
+
+            // Check if it's time for a global upgrade
+            if (nextCheckpoint % 5 === 0) {
+                return {
+                    ...state,
+                    checkpoint: nextCheckpoint,
+                    phase: 'UPGRADE_SELECTION',
+                };
+            }
+
             const newDice = state.dice.map(die => ({
                 ...die,
-                value: roll([6, 8, 12, 20][die.level - 1]), // Roll based on the die's level
+                value: roll([6, 8, 10, 20][die.level - 1]),
             }));
             const newHighlights = analyseRoll(newDice.map(die => die.value)).highlights;
             return {
