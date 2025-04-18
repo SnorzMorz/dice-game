@@ -63,12 +63,14 @@ export default function App() {
 
             {state.shopAvailable && (
               <>
-                <HUDButton onClick={() => dispatch({ type: 'BUY_DIE' })} disabled={state.points < state.buyCost}>
-                  Buy Die (cost {state.buyCost})
-                </HUDButton>
-                <HUDButton onClick={() => dispatch({ type: 'UPGRADE_DIE' })} disabled={state.points < state.upgradeCost}>
-                  Upgrade Random Die (cost {state.upgradeCost})
-                </HUDButton>
+                <div className="flex gap-2">
+                  <HUDButton onClick={() => dispatch({ type: 'BUY_DIE' })} disabled={state.points < state.buyCost}>
+                    Buy Die (cost {state.buyCost})
+                  </HUDButton>
+                  <HUDButton onClick={() => dispatch({ type: 'UPGRADE_DIE' })} disabled={state.points < state.upgradeCost}>
+                    Upgrade Random Die (cost {state.upgradeCost})
+                  </HUDButton>
+                </div>
                 <HUDButton onClick={() => dispatch({ type: 'NEXT_CHECKPOINT' })}>Next checkpoint</HUDButton>
               </>
             )}
@@ -90,7 +92,7 @@ export default function App() {
           <li>Start with 1 die. Each round you may <strong>reroll up to 2 times</strong>.</li>
           <li>Click <em>Finish roll</em> to lock in; scoring happens automatically.</li>
           <li><strong>Scoring</strong>: sum of faces × product of each duplicate group size.<br />Groups are colour-coded.</li>
-          <li>Buy extra dice in the shop; cost doubles each purchase.</li>
+          <li>Buy extra dice or upgrade dice in the shop; cost doubles each purchase.</li>
           <li>Every {ROLLS_PER_CHECK} rounds you must meet the checkpoint score or lose.</li>
         </ul>
       </details>

@@ -21,6 +21,40 @@ const FACE_LOOKUP = {
         7: [Math.PI, Math.PI / 2, 0],
         8: [Math.PI, 0, 0],
     },
+    3: {
+        1: [0, 0, 0],
+        2: [Math.PI / 5, 0, 0],
+        3: [2 * Math.PI / 5, 0, 0],
+        4: [3 * Math.PI / 5, 0, 0],
+        5: [4 * Math.PI / 5, 0, 0],
+        6: [Math.PI, 0, 0],
+        7: [-4 * Math.PI / 5, 0, 0],
+        8: [-3 * Math.PI / 5, 0, 0],
+        9: [-2 * Math.PI / 5, 0, 0],
+        10: [-Math.PI / 5, 0, 0],
+    },
+    4: {
+        1: [0, 0, 0],
+        2: [Math.PI / 10, 0, 0],
+        3: [2 * Math.PI / 10, 0, 0],
+        4: [3 * Math.PI / 10, 0, 0],
+        5: [4 * Math.PI / 10, 0, 0],
+        6: [5 * Math.PI / 10, 0, 0],
+        7: [6 * Math.PI / 10, 0, 0],
+        8: [7 * Math.PI / 10, 0, 0],
+        9: [8 * Math.PI / 10, 0, 0],
+        10: [9 * Math.PI / 10, 0, 0],
+        11: [-9 * Math.PI / 10, 0, 0],
+        12: [-8 * Math.PI / 10, 0, 0],
+        13: [-7 * Math.PI / 10, 0, 0],
+        14: [-6 * Math.PI / 10, 0, 0],
+        15: [-5 * Math.PI / 10, 0, 0],
+        16: [-4 * Math.PI / 10, 0, 0],
+        17: [-3 * Math.PI / 10, 0, 0],
+        18: [-2 * Math.PI / 10, 0, 0],
+        19: [-Math.PI / 10, 0, 0],
+        20: [0, 0, 0],
+    },
 };
 
 export default function Dice3D({ value, level, position, colour }) {
@@ -36,6 +70,8 @@ export default function Dice3D({ value, level, position, colour }) {
             <mesh ref={mesh} castShadow>
                 {level === 1 && <boxGeometry args={[1, 1, 1]} />} {/* 6-sided die */}
                 {level === 2 && <octahedronGeometry args={[1]} />} {/* 8-sided die */}
+                {level === 3 && <dodecahedronGeometry args={[1]} />} {/* 12-sided die */}
+                {level === 4 && <icosahedronGeometry args={[1]} />} {/* 20-sided die */}
                 <meshStandardMaterial
                     color={colour ?? '#555'}
                     emissive={colour ?? '#000'}

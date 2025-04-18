@@ -2,8 +2,8 @@
 import { roll } from './utils/roll';
 
 export const ROLLS_PER_CHECK = 5;
-export const START_CHECKPOINT_POINTS = 20;
-const CHECK_GROWTH = 1.6;
+export const START_CHECKPOINT_POINTS = 15;
+const CHECK_GROWTH = 1.5;
 const INITIAL_BUY_COST = 10;
 export const GROUP_COLOURS = [
     '#22c55e', // green
@@ -69,7 +69,7 @@ export function reducer(state, action) {
             if (state.rerollsLeft <= 0) return state;
             const newDice = state.dice.map(die => ({
                 ...die,
-                value: roll([6, 8, 10, 12, 20][die.level - 1]), // Roll based on the die's level
+                value: roll([6, 8, 12, 20][die.level - 1]), // Roll based on the die's level
             }));
             const { highlights } = analyseRoll(newDice.map(die => die.value));
             return { ...state, dice: newDice, rerollsLeft: state.rerollsLeft - 1, highlights };
@@ -97,7 +97,7 @@ export function reducer(state, action) {
             // Move to the next round
             const newDice = state.dice.map(die => ({
                 ...die,
-                value: roll([6, 8, 10, 12, 20][die.level - 1]), // Roll based on the die's level
+                value: roll([6, 8, 12, 20][die.level - 1]), // Roll based on the die's level
             }));
             const newHighlights = analyseRoll(newDice.map(die => die.value)).highlights;
 
@@ -128,7 +128,7 @@ export function reducer(state, action) {
             if (state.points < state.upgradeCost) return state;
 
             // Define the sides for each level
-            const levels = [6, 8];
+            const levels = [6, 8, 10, 20];
 
             // Find a random die that can be upgraded
             const upgradableDice = state.dice.filter(die => die.level < levels.length);
@@ -157,17 +157,19 @@ export function reducer(state, action) {
             if (!state.shopAvailable) return state;
 
             const nextCheckpoint = state.checkpoint + 1;
+            const newDice = state.dice.map(die => ({
+                ...die,
+                value: roll([6, 8, 12, 20][die.level - 1]), // Roll based on the die's level
+            }));
+            const newHighlights = analyseRoll(newDice.map(die => die.value)).highlights;
             return {
                 ...state,
                 checkpoint: nextCheckpoint,
                 required: requiredForCheckpoint(nextCheckpoint),
                 round: 1,
                 rerollsLeft: 2,
-                dice: state.dice.map(die => ({
-                    ...die,
-                    value: roll([6, 8, 10, 12, 20][die.level - 1]), // Roll based on the die's level
-                })), // Retain levels and roll new values
-                highlights: {},
+                dice: newDice,
+                highlights: newHighlights,
                 gained: 0,
                 base: 0,
                 multiplier: 1,
