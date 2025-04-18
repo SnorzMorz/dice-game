@@ -41,9 +41,12 @@ function analyseRoll(dice) {
 }
 
 export function initialState() {
+    const initialDice = [{ value: roll(), level: 1 }]; // Each die starts at level 1 (6 sides)
+    const { highlights } = analyseRoll(initialDice.map(die => die.value));
+
     return {
-        dice: [roll()],
-        highlights: {},
+        dice: initialDice,
+        highlights, // Set the highlights for the initial roll
         phase: 'ROLL',
         points: 0,
         rerollsLeft: 2,
@@ -54,20 +57,26 @@ export function initialState() {
         base: 0,
         multiplier: 1,
         buyCost: INITIAL_BUY_COST,
+        upgradeCost: 10, // Initial cost for upgrading a die
     };
 }
 
 export function reducer(state, action) {
+    console.log('Action:', action); // Log the action
+    console.log('State before:', state); // Log the state before the action
     switch (action.type) {
         case 'ROLL': {
             if (state.rerollsLeft <= 0) return state;
-            const newDice = state.dice.map(() => roll());
-            const { highlights } = analyseRoll(newDice);
+            const newDice = state.dice.map(die => ({
+                ...die,
+                value: roll([6, 8, 10, 12, 20][die.level - 1]), // Roll based on the die's level
+            }));
+            const { highlights } = analyseRoll(newDice.map(die => die.value));
             return { ...state, dice: newDice, rerollsLeft: state.rerollsLeft - 1, highlights };
         }
 
         case 'FINISH_ROLL': {
-            const { base, multiplier, total, highlights } = analyseRoll(state.dice);
+            const { base, multiplier, total, highlights } = analyseRoll(state.dice.map(die => die.value));
 
             // Check if it's the last round of the checkpoint
             const isLastRound = state.round === ROLLS_PER_CHECK;
@@ -86,14 +95,19 @@ export function reducer(state, action) {
             }
 
             // Move to the next round
-            const newDice = state.dice.map(() => roll());
+            const newDice = state.dice.map(die => ({
+                ...die,
+                value: roll([6, 8, 10, 12, 20][die.level - 1]), // Roll based on the die's level
+            }));
+            const newHighlights = analyseRoll(newDice.map(die => die.value)).highlights;
+
             return {
                 ...state,
                 points: state.points + total,
                 gained: total,
                 base,
                 multiplier,
-                highlights,
+                highlights: newHighlights,
                 dice: newDice,
                 rerollsLeft: 2,
                 round: state.round + 1,
@@ -105,8 +119,37 @@ export function reducer(state, action) {
             return {
                 ...state,
                 points: state.points - state.buyCost,
-                dice: [...state.dice, roll()],
+                dice: [...state.dice, { value: roll(6), level: 1 }], // Add a new die with level 1
                 buyCost: state.buyCost * 2,
+            };
+        }
+
+        case 'UPGRADE_DIE': {
+            if (state.points < state.upgradeCost) return state;
+
+            // Define the sides for each level
+            const levels = [6, 8];
+
+            // Find a random die that can be upgraded
+            const upgradableDice = state.dice.filter(die => die.level < levels.length);
+            if (upgradableDice.length === 0) return state; // No dice to upgrade
+
+            // Select a random die to upgrade
+            const randomIndex = Math.floor(Math.random() * upgradableDice.length);
+            const dieToUpgrade = upgradableDice[randomIndex];
+
+            // Upgrade the die
+            const upgradedDice = state.dice.map(die =>
+                die === dieToUpgrade
+                    ? { ...die, level: die.level + 1, value: roll(levels[die.level]) } // Increment level and roll new value
+                    : die
+            );
+
+            return {
+                ...state,
+                points: state.points - state.upgradeCost,
+                dice: upgradedDice,
+                upgradeCost: state.upgradeCost * 2, // Double the cost for the next upgrade
             };
         }
 
@@ -120,7 +163,10 @@ export function reducer(state, action) {
                 required: requiredForCheckpoint(nextCheckpoint),
                 round: 1,
                 rerollsLeft: 2,
-                dice: state.dice.map(() => roll()),
+                dice: state.dice.map(die => ({
+                    ...die,
+                    value: roll([6, 8, 10, 12, 20][die.level - 1]), // Roll based on the die's level
+                })), // Retain levels and roll new values
                 highlights: {},
                 gained: 0,
                 base: 0,
