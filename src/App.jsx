@@ -10,11 +10,8 @@ export default function App() {
   const [state, dispatch] = useReducer(reducer, null, initialState);
   const { dice, highlights, phase, rerollsLeft, points, round, checkpoint, gained, base, multiplier, required, buyCost } = state;
 
-  const pointsNeeded = Math.max(0, required - points);
-  const xOffset = -((Math.min(dice.length, 8) - 1) * 1.8) / 2;
   const MAX_PER_ROW = 6;
-
-  // split into rows of up to 8 dice
+  const xOffset = -((Math.min(dice.length, MAX_PER_ROW) - 1) * 1.8) / 2;
   const rows = [];
   for (let i = 0; i < dice.length; i += MAX_PER_ROW) rows.push(dice.slice(i, i + MAX_PER_ROW));
 
@@ -24,7 +21,7 @@ export default function App() {
 
       {phase !== phases.LOSE && (
         <p className="text-center">
-          Checkpoint {checkpoint} • Round {round} / {ROLLS_PER_CHECK} • Points needed {pointsNeeded}
+          Checkpoint {checkpoint} • Round {round} / {ROLLS_PER_CHECK} • Points required {required}
           <br />Base {base} × {multiplier} = <span className="text-emerald-400">{gained}</span> • Total {points}
         </p>
       )}
@@ -81,7 +78,7 @@ export default function App() {
           )}
 
           {/* Rules / Help */}
-          <details className="max-w-md text-sm opacity-80 mt-4" open>
+          <details className="max-w-md text-sm opacity-80 mt-4">
             <summary className="cursor-pointer text-indigo-400">How to play</summary>
             <ul className="list-disc pl-6 space-y-1">
               <li>Start with 1 die. Each round you may <strong>reroll up to 2 times</strong>.</li>
