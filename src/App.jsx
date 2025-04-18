@@ -11,11 +11,16 @@ export default function App() {
   const { dice, highlights, phase, rerollsLeft, points, round, checkpoint, gained, base, multiplier, required, buyCost } = state;
 
   const pointsNeeded = Math.max(0, required - points);
-  const xOffset = -((dice.length - 1) * 1.8) / 2;
+  const xOffset = -((Math.min(dice.length, 8) - 1) * 1.8) / 2;
+  const MAX_PER_ROW = 6;
+
+  // split into rows of up to 8 dice
+  const rows = [];
+  for (let i = 0; i < dice.length; i += MAX_PER_ROW) rows.push(dice.slice(i, i + MAX_PER_ROW));
 
   return (
     <div className="min-h-screen flex flex-col items-center gap-4 p-4 bg-gradient-to-br from-slate-800 to-slate-900 text-white">
-      <h1 className="text-3xl font-extrabold">A game of Dice and Luck</h1>
+      <h1 className="text-3xl font-extrabold">Dice • 3D Prototype</h1>
 
       {phase !== phases.LOSE && (
         <p className="text-center">
@@ -37,9 +42,21 @@ export default function App() {
             <ambientLight intensity={0.4} />
             <directionalLight position={[5, 10, 5]} intensity={1} castShadow />
             <Suspense fallback={null}>
-              {dice.map((d, i) => (
-                <Dice3D key={i} value={d} position={[xOffset + i * 1.8, 0, 0]} colour={highlights[i]} />
-              ))}
+              {rows.map((row, rIdx) => {
+                const zOff = -rIdx * 2;
+                const xOffRow = -((row.length - 1) * 1.8) / 2;
+                return row.map((d, j) => {
+                  const idx = rIdx * MAX_PER_ROW + j;
+                  return (
+                    <Dice3D
+                      key={`${rIdx}-${j}`}
+                      value={d}
+                      position={[xOffRow + j * 1.8, 0, zOff]}
+                      colour={highlights[idx]}
+                    />
+                  );
+                });
+              })}
               <Environment preset="city" />
             </Suspense>
             <OrbitControls enablePan={false} enableZoom={false} />

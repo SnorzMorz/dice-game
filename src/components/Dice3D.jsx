@@ -1,4 +1,3 @@
-//////////////////////// src/components/Dice3D.jsx ////////////////////////
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
@@ -17,13 +16,7 @@ export default function Dice3D({ value, position, colour }) {
         <group position={position}>
             <mesh ref={mesh} castShadow>
                 <boxGeometry args={[1, 1, 1]} />
-                <meshStandardMaterial
-                    roughness={0.4}
-                    metalness={0.1}
-                    color={colour ?? 'white'}
-                    emissive={colour ?? '#000000'}
-                    emissiveIntensity={colour ? 0.5 : 0}
-                />
+                <meshStandardMaterial color={colour ?? 'white'} emissive={colour ?? '#000'} emissiveIntensity={colour ? 0.5 : 0} roughness={0.4} metalness={0.1} />
             </mesh>
             <Html center distanceFactor={8}>
                 <span className="text-xl font-bold text-white drop-shadow-lg">{value}</span>
