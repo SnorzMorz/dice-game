@@ -21,7 +21,7 @@ function analyseRoll(dice: number[]): {
     dice.forEach((v, i) => (freq[v] ??= []).push(i));
 
     let multiplier = 1;
-    const highlights: Record<number, string> = {};
+    const newHighlights: Record<number, string> = {};
     let colour = 0;
 
     Object.values(freq).forEach((idxArr) => {
@@ -29,11 +29,12 @@ function analyseRoll(dice: number[]): {
             multiplier *= idxArr.length;
             const c = GROUP_COLOURS[colour % GROUP_COLOURS.length];
             colour += 1;
-            idxArr.forEach((i) => (highlights[i] = c));
+            idxArr.forEach((i) => (newHighlights[i] = c));
         }
     });
 
-    return { base, multiplier, total: base * multiplier, highlights };
+    // Always return a new object to ensure React detects changes
+    return { base, multiplier, total: base * multiplier, highlights: { ...newHighlights } };
 }
 
 export function initialState(): GameState {
@@ -96,7 +97,7 @@ export function reducer(state: GameState, action: { type: string; upgrade?: Upgr
                 ...die,
                 value: roll([6, 8, 12, 20][die.level - 1]),
             }));
-            const newHighlights = analyseRoll(newDice.map((die) => die.value)).highlights;
+            const { highlights: newHighlights } = analyseRoll(newDice.map((die) => die.value)); // Recalculate highlights
 
             return {
                 ...state,
@@ -104,7 +105,7 @@ export function reducer(state: GameState, action: { type: string; upgrade?: Upgr
                 gained: total,
                 base,
                 multiplier,
-                highlights: newHighlights,
+                highlights: newHighlights, // Update highlights
                 dice: newDice,
                 rerollsLeft: 2,
                 round: state.round + 1,

@@ -75,7 +75,6 @@ export default function Dice3D({ value, level, position, colour }: Dice3DProps) 
         mesh.current.rotation.y += (ry - mesh.current.rotation.y) * 0.1;
         mesh.current.rotation.z += (rz - mesh.current.rotation.z) * 0.1;
     });
-
     return (
         <group position={position}>
             <mesh ref={mesh} castShadow>
@@ -84,8 +83,8 @@ export default function Dice3D({ value, level, position, colour }: Dice3DProps) 
                 {level === 3 && <dodecahedronGeometry args={[1]} />} {/* 12-sided die */}
                 {level === 4 && <icosahedronGeometry args={[1]} />} {/* 20-sided die */}
                 <meshStandardMaterial
-                    color={colour}
-                    emissive={colour}
+                    color={colour ?? '#555'}
+                    emissive={colour ?? '#000'}
                     emissiveIntensity={colour ? 0.5 : 0}
                     roughness={0.4}
                     metalness={0.1}
