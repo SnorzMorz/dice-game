@@ -1,20 +1,23 @@
-//////////////////////// src/App.jsx ////////////////////////
 import { Suspense, useReducer } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment } from '@react-three/drei';
 import HUDButton from './components/HUDButton';
 import Dice3D from './components/Dice3D';
-import { initialState, reducer, ROLLS_PER_CHECK } from './GameEngine';
-import { upgrades } from './utils/upgrades';
+import { initialState, reducer } from './GameEngine';
+import { ROLLS_PER_CHECK } from './constants/game';
+import { GameState } from './interfaces/GameState';
+import { Upgrade } from './interfaces/Upgrade';
 
 export default function App() {
   const [state, dispatch] = useReducer(reducer, null, initialState);
 
   const MAX_PER_ROW = 6;
-  const rows = [];
-  for (let i = 0; i < state.dice.length; i += MAX_PER_ROW) rows.push(state.dice.slice(i, i + MAX_PER_ROW));
+  const rows: GameState['dice'][] = [];
+  for (let i = 0; i < state.dice.length; i += MAX_PER_ROW) {
+    rows.push(state.dice.slice(i, i + MAX_PER_ROW));
+  }
 
-  const handleUpgradeSelection = (upgrade) => {
+  const handleUpgradeSelection = (upgrade: Upgrade) => {
     dispatch({ type: 'APPLY_UPGRADE', upgrade });
   };
 
@@ -26,7 +29,7 @@ export default function App() {
         <div className="flex flex-col items-center gap-4">
           <h2 className="text-2xl font-bold">Choose a Global Upgrade</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {upgrades.map(upgrade => (
+            {state.availableUpgrades?.map((upgrade) => (
               <HUDButton key={upgrade.id} onClick={() => handleUpgradeSelection(upgrade)}>
                 {upgrade.name}
               </HUDButton>
@@ -58,8 +61,8 @@ export default function App() {
                       return (
                         <Dice3D
                           key={`${rIdx}-${j}`}
-                          value={d.value} // Pass the rolled value
-                          level={d.level} // Pass the level of the die
+                          value={d.value}
+                          level={d.level}
                           position={[xOffRow + j * 1.8, 0, zOff]}
                           colour={state.highlights[idx]}
                         />
@@ -74,7 +77,11 @@ export default function App() {
               <div className="flex flex-col items-center gap-2">
                 {state.round <= ROLLS_PER_CHECK && !state.shopAvailable && (
                   <>
-                    <button className="underline" onClick={() => dispatch({ type: 'ROLL' })} disabled={state.rerollsLeft <= 0}>
+                    <button
+                      className="underline"
+                      onClick={() => dispatch({ type: 'ROLL' })}
+                      disabled={state.rerollsLeft <= 0}
+                    >
                       {state.rerollsLeft > 0 ? `Reroll (${state.rerollsLeft})` : 'No rerolls'}
                     </button>
                     <HUDButton onClick={() => dispatch({ type: 'FINISH_ROLL' })}>Finish roll</HUDButton>
@@ -84,10 +91,16 @@ export default function App() {
                 {state.shopAvailable && (
                   <>
                     <div className="flex gap-2">
-                      <HUDButton onClick={() => dispatch({ type: 'BUY_DIE' })} disabled={state.points < state.buyCost}>
+                      <HUDButton
+                        onClick={() => dispatch({ type: 'BUY_DIE' })}
+                        disabled={state.points < state.buyCost}
+                      >
                         Buy Die (cost {state.buyCost})
                       </HUDButton>
-                      <HUDButton onClick={() => dispatch({ type: 'UPGRADE_DIE' })} disabled={state.points < state.upgradeCost}>
+                      <HUDButton
+                        onClick={() => dispatch({ type: 'UPGRADE_DIE' })}
+                        disabled={state.points < state.upgradeCost}
+                      >
                         Upgrade Random Die (cost {state.upgradeCost})
                       </HUDButton>
                     </div>
@@ -100,7 +113,9 @@ export default function App() {
 
           {state.gameOver && (
             <>
-              <p className="text-red-400 text-xl font-semibold text-center">Game Over! You needed {state.required} points but only had {state.points}.</p>
+              <p className="text-red-400 text-xl font-semibold text-center">
+                Game Over! You needed {state.required} points but only had {state.points}.
+              </p>
               <HUDButton onClick={() => dispatch({ type: 'RESET' })}>Restart</HUDButton>
             </>
           )}
@@ -111,7 +126,11 @@ export default function App() {
             <ul className="list-disc pl-6 space-y-1">
               <li>Start with 1 die. Each round you may <strong>reroll up to 2 times</strong>.</li>
               <li>Click <em>Finish roll</em> to lock in; scoring happens automatically.</li>
-              <li><strong>Scoring</strong>: sum of faces × product of each duplicate group size.<br />Groups are colour-coded.</li>
+              <li>
+                <strong>Scoring</strong>: sum of faces × product of each duplicate group size.
+                <br />
+                Groups are colour-coded.
+              </li>
               <li>Buy extra dice or upgrade dice in the shop; cost doubles each purchase.</li>
               <li>Every {ROLLS_PER_CHECK} rounds you must meet the checkpoint score or lose.</li>
             </ul>

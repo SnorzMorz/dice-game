@@ -1,8 +1,9 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
+import { Mesh } from 'three';
 
-const FACE_LOOKUP = {
+const FACE_LOOKUP: Record<number, Record<number, [number, number, number]>> = {
     1: {
         1: [0, 0, 0],
         2: [Math.PI / 2, 0, 0],
@@ -57,14 +58,24 @@ const FACE_LOOKUP = {
     },
 };
 
-export default function Dice3D({ value, level, position, colour }) {
-    const mesh = useRef();
+interface Dice3DProps {
+    value: number; // The rolled value of the die
+    level: number; // The level of the die (1 = 6-sided, 2 = 8-sided, etc.)
+    position: [number, number, number]; // The 3D position of the die
+    colour?: string; // Optional highlight colour for the die
+}
+
+export default function Dice3D({ value, level, position, colour }: Dice3DProps) {
+    const mesh = useRef<Mesh>(null);
+
     useFrame(() => {
-        const [rx, ry, rz] = FACE_LOOKUP[level][value] ?? [0, 0, 0];
+        if (!mesh.current) return;
+        const [rx, ry, rz] = FACE_LOOKUP[level][value];
         mesh.current.rotation.x += (rx - mesh.current.rotation.x) * 0.1;
         mesh.current.rotation.y += (ry - mesh.current.rotation.y) * 0.1;
         mesh.current.rotation.z += (rz - mesh.current.rotation.z) * 0.1;
     });
+
     return (
         <group position={position}>
             <mesh ref={mesh} castShadow>
@@ -73,8 +84,8 @@ export default function Dice3D({ value, level, position, colour }) {
                 {level === 3 && <dodecahedronGeometry args={[1]} />} {/* 12-sided die */}
                 {level === 4 && <icosahedronGeometry args={[1]} />} {/* 20-sided die */}
                 <meshStandardMaterial
-                    color={colour ?? '#555'}
-                    emissive={colour ?? '#000'}
+                    color={colour}
+                    emissive={colour}
                     emissiveIntensity={colour ? 0.5 : 0}
                     roughness={0.4}
                     metalness={0.1}
