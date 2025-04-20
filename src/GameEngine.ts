@@ -1,10 +1,12 @@
 import { roll } from './utils/roll';
 import { selectUpgrades } from './utils/selectUpgrades';
-import { upgrades } from './utils/upgrades';
+import { upgrades } from './constants/upgrades/upgrades';
 import { GameState } from './interfaces/GameState';
 import { Upgrade } from './interfaces/Upgrade';
 import { GROUP_COLOURS } from './constants/colors';
 import { ROLLS_PER_CHECK, START_CHECKPOINT_POINTS, CHECK_GROWTH, INITIAL_BUY_COST } from './constants/game';
+import { ActionTypes } from './constants/actions';
+import { Phases } from './constants/phases';
 
 function requiredForCheckpoint(cp: number): number {
     return Math.ceil(START_CHECKPOINT_POINTS * Math.pow(CHECK_GROWTH, cp - 1));
@@ -44,10 +46,11 @@ export function initialState(): GameState {
     return {
         dice: initialDice,
         highlights,
-        phase: 'ROLL',
+        phase: Phases.ROLL,
         points: 0,
         rerollsLeft: 2,
         checkpoint: 1,
+        roundsPerCheckpoint: ROLLS_PER_CHECK,
         round: 1,
         required: requiredForCheckpoint(1),
         gained: 0,
@@ -58,13 +61,12 @@ export function initialState(): GameState {
     };
 }
 
-export function reducer(state: GameState, action: { type: string; upgrade?: Upgrade }): GameState {
+export function reducer(state: GameState, action: { type: ActionTypes; upgrade?: Upgrade }): GameState {
     console.log('Action:', action); // Log the action
     console.log('State before:', state); // Log the state before the action
 
     switch (action.type) {
-        case 'ROLL': {
-            if (state.rerollsLeft <= 0) return state;
+        case ActionTypes.ROLL: {
             const newDice = state.dice.map((die) => ({
                 ...die,
                 value: roll([6, 8, 12, 20][die.level - 1]),
@@ -73,7 +75,7 @@ export function reducer(state: GameState, action: { type: string; upgrade?: Upgr
             return { ...state, dice: newDice, rerollsLeft: state.rerollsLeft - 1, highlights };
         }
 
-        case 'FINISH_ROLL': {
+        case ActionTypes.FINISH_ROLL: {
             const { base, multiplier, total, highlights } = analyseRoll(state.dice.map((die) => die.value));
 
             // Check if it's the last round of the checkpoint
@@ -87,8 +89,7 @@ export function reducer(state: GameState, action: { type: string; upgrade?: Upgr
                     base,
                     multiplier,
                     highlights,
-                    shopAvailable: passedCheckpoint,
-                    gameOver: !passedCheckpoint,
+                    phase: passedCheckpoint ? Phases.SHOP : Phases.LOSE,
                 };
             }
 
@@ -112,8 +113,7 @@ export function reducer(state: GameState, action: { type: string; upgrade?: Upgr
             };
         }
 
-        case 'BUY_DIE': {
-            if (!state.shopAvailable || state.points < state.buyCost) return state;
+        case ActionTypes.BUY_DIE: {
             return {
                 ...state,
                 points: state.points - state.buyCost,
@@ -122,9 +122,7 @@ export function reducer(state: GameState, action: { type: string; upgrade?: Upgr
             };
         }
 
-        case 'UPGRADE_DIE': {
-            if (state.points < state.upgradeCost) return state;
-
+        case ActionTypes.UPGRADE_DIE: {
             const levels = [6, 8, 10, 20];
 
             const upgradableDice = state.dice.filter((die) => die.level < levels.length);
@@ -147,28 +145,29 @@ export function reducer(state: GameState, action: { type: string; upgrade?: Upgr
             };
         }
 
-        case 'APPLY_UPGRADE': {
+        case ActionTypes.APPLY_UPGRADE: {
             if (!action.upgrade) return state;
             const newState = action.upgrade.apply(state);
             return {
                 ...newState,
-                phase: 'ROLL',
+                phase: Phases.ROLL,
+                checkpoint: newState.checkpoint + 1,
+                round: 1,
                 availableUpgrades: [],
             };
         }
 
-        case 'NEXT_CHECKPOINT': {
-            if (!state.shopAvailable) return state;
+        case ActionTypes.NEXT_CHECKPOINT: {
 
             const nextCheckpoint = state.checkpoint + 1;
 
             if (nextCheckpoint % 5 === 0) {
-                const selectedUpgrades = selectUpgrades(upgrades, 3);
+                const availableUpgrades = selectUpgrades(upgrades, 3);
                 return {
                     ...state,
                     checkpoint: nextCheckpoint,
-                    phase: 'UPGRADE_SELECTION',
-                    availableUpgrades: selectedUpgrades,
+                    phase: Phases.UPGRADE,
+                    availableUpgrades: availableUpgrades,
                 };
             }
 
@@ -189,11 +188,11 @@ export function reducer(state: GameState, action: { type: string; upgrade?: Upgr
                 gained: 0,
                 base: 0,
                 multiplier: 1,
-                shopAvailable: false,
+                phase: Phases.ROLL,
             };
         }
 
-        case 'RESET': {
+        case ActionTypes.RESET: {
             return initialState();
         }
 

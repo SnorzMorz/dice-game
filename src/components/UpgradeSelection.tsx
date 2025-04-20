@@ -1,7 +1,6 @@
 import HUDButton from './HUDButton';
 import { Upgrade } from '@/interfaces/Upgrade';
-import { GameState } from '@/interfaces/GameState';
-
+import { ActionTypes } from '@/constants/actions';
 interface UpgradeSelectionProps {
     upgrades: Upgrade[]; // List of available upgrades
     dispatch: React.Dispatch<{ type: string; upgrade?: Upgrade }>; // Dispatch function for state management
@@ -9,7 +8,7 @@ interface UpgradeSelectionProps {
 
 export default function UpgradeSelection({ upgrades, dispatch }: UpgradeSelectionProps) {
     const handleUpgradeSelection = (upgrade: Upgrade) => {
-        dispatch({ type: 'APPLY_UPGRADE', upgrade });
+        dispatch({ type: ActionTypes.APPLY_UPGRADE, upgrade });
     };
 
     return (
@@ -17,7 +16,11 @@ export default function UpgradeSelection({ upgrades, dispatch }: UpgradeSelectio
             <h2 className="text-2xl font-bold">Choose a Global Upgrade</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {upgrades.map((upgrade) => (
-                    <HUDButton key={upgrade.id} onClick={() => handleUpgradeSelection(upgrade)}>
+                    <HUDButton
+                        key={upgrade.id}
+                        rarity={upgrade.rarity}
+                        onClick={() => handleUpgradeSelection(upgrade)}
+                    >
                         {upgrade.name}
                     </HUDButton>
                 ))}

@@ -24,15 +24,17 @@ const FACE_LOOKUP: Record<number, Record<number, [number, number, number]>> = {
     },
     3: {
         1: [0, 0, 0],
-        2: [Math.PI / 5, 0, 0],
-        3: [2 * Math.PI / 5, 0, 0],
-        4: [3 * Math.PI / 5, 0, 0],
-        5: [4 * Math.PI / 5, 0, 0],
-        6: [Math.PI, 0, 0],
-        7: [-4 * Math.PI / 5, 0, 0],
-        8: [-3 * Math.PI / 5, 0, 0],
-        9: [-2 * Math.PI / 5, 0, 0],
-        10: [-Math.PI / 5, 0, 0],
+        2: [Math.PI / 6, 0, 0],
+        3: [Math.PI / 3, 0, 0],
+        4: [Math.PI / 2, 0, 0],
+        5: [(2 * Math.PI) / 3, 0, 0],
+        6: [(5 * Math.PI) / 6, 0, 0],
+        7: [Math.PI, 0, 0],
+        8: [-(5 * Math.PI) / 6, 0, 0],
+        9: [-(2 * Math.PI) / 3, 0, 0],
+        10: [-Math.PI / 2, 0, 0],
+        11: [-Math.PI / 3, 0, 0],
+        12: [-Math.PI / 6, 0, 0],
     },
     4: {
         1: [0, 0, 0],
@@ -92,7 +94,7 @@ export default function Dice3D({ value, level, position, colour }: Dice3DProps) 
             </mesh>
             <Html center distanceFactor={8}>
                 <div>
-                    <span className="text-xl font-bold text-white drop-shadow-[0_0_4px_rgba(0,0,0,0.8)]">{value}</span>
+                    <span className="text-2xl font-bold text-white drop-shadow-[0_0_4px_rgba(0,0,0,0.8)]">{value}</span>
                 </div>
             </Html>
         </group>

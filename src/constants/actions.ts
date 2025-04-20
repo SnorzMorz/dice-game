@@ -1,0 +1,9 @@
+export enum ActionTypes {
+    ROLL = 'ROLL',
+    FINISH_ROLL = 'FINISH_ROLL',
+    BUY_DIE = 'BUY_DIE',
+    UPGRADE_DIE = 'UPGRADE_DIE',
+    APPLY_UPGRADE = 'APPLY_UPGRADE',
+    NEXT_CHECKPOINT = 'NEXT_CHECKPOINT',
+    RESET = 'RESET',
+}
