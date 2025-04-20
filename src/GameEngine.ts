@@ -4,12 +4,12 @@ import { upgrades } from './constants/upgrades/upgrades';
 import { GameState } from './interfaces/GameState';
 import { Upgrade } from './interfaces/Upgrade';
 import { GROUP_COLOURS } from './constants/colors';
-import { ROLLS_PER_CHECK, START_CHECKPOINT_POINTS, CHECK_GROWTH, INITIAL_BUY_COST } from './constants/game';
+import { START_ROUNDS_PER_CHECKPOINT, FIRST_CHECKPOINT_POINT_REQ, CHECKPOINT_POINT_GROWTH, START_DICE_BUY_COST } from './constants/game';
 import { ActionTypes } from './constants/actions';
 import { Phases } from './constants/phases';
 
 function requiredForCheckpoint(cp: number): number {
-    return Math.ceil(START_CHECKPOINT_POINTS * Math.pow(CHECK_GROWTH, cp - 1));
+    return Math.ceil(FIRST_CHECKPOINT_POINT_REQ * Math.pow(CHECKPOINT_POINT_GROWTH, cp - 1));
 }
 
 function analyseRoll(dice: number[]): {
@@ -50,14 +50,14 @@ export function initialState(): GameState {
         points: 0,
         rerollsLeft: 2,
         checkpoint: 1,
-        roundsPerCheckpoint: ROLLS_PER_CHECK,
+        roundsPerCheckpoint: START_ROUNDS_PER_CHECKPOINT,
         round: 1,
         required: requiredForCheckpoint(1),
         gained: 0,
         base: 0,
         multiplier: 1,
-        buyCost: INITIAL_BUY_COST,
-        upgradeCost: 10,
+        buyCost: START_DICE_BUY_COST,
+        upgradeCost: START_DICE_BUY_COST,
     };
 }
 
@@ -79,7 +79,7 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
             const { base, multiplier, total, highlights } = analyseRoll(state.dice.map((die) => die.value));
 
             // Check if it's the last round of the checkpoint
-            const isLastRound = state.round === ROLLS_PER_CHECK;
+            const isLastRound = state.round === state.roundsPerCheckpoint;
             if (isLastRound) {
                 const passedCheckpoint = state.points + total >= state.required;
                 return {
