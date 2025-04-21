@@ -3,61 +3,75 @@ import { selectUpgrades } from './utils/selectUpgrades';
 import { upgrades } from './constants/upgrades/upgrades';
 import { GameState } from './interfaces/GameState';
 import { Upgrade } from './interfaces/Upgrade';
-import { GROUP_COLOURS } from './constants/colors';
-import { START_ROUNDS_PER_CHECKPOINT, FIRST_CHECKPOINT_POINT_REQ, CHECKPOINT_POINT_GROWTH, START_DICE_BUY_COST } from './constants/game';
+import { DEFAULT_COLOR, DICE_COMBO_COLORS } from './constants/diceColors';
 import { ActionTypes } from './constants/actions';
 import { Phases } from './constants/phases';
+import { Die } from './interfaces/Die';
+import { DiceLevels } from './constants/diceLevels';
 
-function requiredForCheckpoint(cp: number): number {
-    return Math.ceil(FIRST_CHECKPOINT_POINT_REQ * Math.pow(CHECKPOINT_POINT_GROWTH, cp - 1));
+function requiredForNextCheckpoint(previousCheckPointRequirement: number, multiplier: number): number {
+    return Math.floor(previousCheckPointRequirement * multiplier);
 }
 
-function analyseRoll(dice: number[]): {
+function calculateRollStats(dice: Die[]): {
     base: number;
     multiplier: number;
     total: number;
-    highlights: Record<number, string>;
+    groups: Record<number, Die[]>;
 } {
-    const base = dice.reduce((a, b) => a + b, 0);
-    const freq: Record<number, number[]> = {};
-    dice.forEach((v, i) => (freq[v] ??= []).push(i));
+    const base = dice.reduce((acc, die) => acc + die.value, 0);
+    const freq: Record<number, Die[]> = {};
+    dice.forEach((die) => (freq[die.value] ??= []).push(die));
 
     let multiplier = 1;
-    const newHighlights: Record<number, string> = {};
-    let colour = 0;
-
-    Object.values(freq).forEach((idxArr) => {
-        if (idxArr.length >= 2) {
-            multiplier *= idxArr.length;
-            const c = GROUP_COLOURS[colour % GROUP_COLOURS.length];
-            colour += 1;
-            idxArr.forEach((i) => (newHighlights[i] = c));
+    Object.values(freq).forEach((diceGroup) => {
+        if (diceGroup.length >= 2) {
+            multiplier *= diceGroup.length;
         }
     });
 
-    // Always return a new object to ensure React detects changes
-    return { base, multiplier, total: base * multiplier, highlights: { ...newHighlights } };
+    return { base, multiplier, total: base * multiplier, groups: freq };
+}
+
+function updateDiceColors(groups: Record<number, Die[]>): void {
+    let colorIndex = 0;
+    Object.values(groups).forEach((diceGroup) => {
+        if (diceGroup.length >= 2) {
+            const color = DICE_COMBO_COLORS[colorIndex % DICE_COMBO_COLORS.length];
+            colorIndex += 1;
+            diceGroup.forEach((die) => (die.color = color));
+        }
+    });
+}
+
+function analyseRoll(dice: Die[]): {
+    base: number;
+    multiplier: number;
+    total: number;
+} {
+    const { base, multiplier, total, groups } = calculateRollStats(dice);
+    updateDiceColors(groups);
+    return { base, multiplier, total };
 }
 
 export function initialState(): GameState {
-    const initialDice = [{ value: roll(6), level: 1 }]; // Each die starts at level 1 (6 sides)
-    const { highlights } = analyseRoll(initialDice.map((die) => die.value));
 
     return {
-        dice: initialDice,
-        highlights,
+        dice: [{ value: roll(6), level: DiceLevels.LEVEL_1, color: DEFAULT_COLOR, multiplier: 1 }],
         phase: Phases.ROLL,
         points: 0,
         rerollsLeft: 2,
+        maxRerolls: 2,
         checkpoint: 1,
-        roundsPerCheckpoint: START_ROUNDS_PER_CHECKPOINT,
+        roundsPerCheckpoint: 5,
         round: 1,
-        required: requiredForCheckpoint(1),
+        checkpointRequirement: 10,
         gained: 0,
         base: 0,
         multiplier: 1,
-        buyCost: START_DICE_BUY_COST,
-        upgradeCost: START_DICE_BUY_COST,
+        buyCost: 10,
+        upgradeCost: 5,
+        checkpointMultiplier: 1.4,
     };
 }
 
@@ -69,26 +83,24 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
         case ActionTypes.ROLL: {
             const newDice = state.dice.map((die) => ({
                 ...die,
-                value: roll([6, 8, 12, 20][die.level - 1]),
+                value: roll(die.level.valueOf()),
             }));
-            const { highlights } = analyseRoll(newDice.map((die) => die.value));
-            return { ...state, dice: newDice, rerollsLeft: state.rerollsLeft - 1, highlights };
+            analyseRoll(newDice);
+            return { ...state, dice: newDice, rerollsLeft: state.rerollsLeft - 1 };
         }
 
         case ActionTypes.FINISH_ROLL: {
-            const { base, multiplier, total, highlights } = analyseRoll(state.dice.map((die) => die.value));
-
-            // Check if it's the last round of the checkpoint
             const isLastRound = state.round === state.roundsPerCheckpoint;
             if (isLastRound) {
-                const passedCheckpoint = state.points + total >= state.required;
+                const { base, multiplier, total } = analyseRoll(state.dice);
+                const passedCheckpoint = state.points + total >= state.checkpointRequirement;
                 return {
                     ...state,
                     points: state.points + total,
                     gained: total,
                     base,
                     multiplier,
-                    highlights,
+                    rerollsLeft: state.maxRerolls,
                     phase: passedCheckpoint ? Phases.SHOP : Phases.LOSE,
                 };
             }
@@ -98,7 +110,7 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
                 ...die,
                 value: roll([6, 8, 12, 20][die.level - 1]),
             }));
-            const { highlights: newHighlights } = analyseRoll(newDice.map((die) => die.value)); // Recalculate highlights
+            const { base, multiplier, total } = analyseRoll(newDice);
 
             return {
                 ...state,
@@ -106,9 +118,8 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
                 gained: total,
                 base,
                 multiplier,
-                highlights: newHighlights, // Update highlights
                 dice: newDice,
-                rerollsLeft: 2,
+                rerollsLeft: state.maxRerolls,
                 round: state.round + 1,
             };
         }
@@ -117,15 +128,13 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
             return {
                 ...state,
                 points: state.points - state.buyCost,
-                dice: [...state.dice, { value: roll(6), level: 1 }],
+                dice: [...state.dice, { value: roll(DiceLevels.LEVEL_1.valueOf()), level: DiceLevels.LEVEL_1, color: DEFAULT_COLOR, multiplier: 1 }],
                 buyCost: state.buyCost * 2,
             };
         }
 
         case ActionTypes.UPGRADE_DIE: {
-            const levels = [6, 8, 10, 20];
-
-            const upgradableDice = state.dice.filter((die) => die.level < levels.length);
+            const upgradableDice = state.dice.filter((die) => die.level.valueOf() < DiceLevels.LEVEL_4.valueOf());
             if (upgradableDice.length === 0) return state;
 
             const randomIndex = Math.floor(Math.random() * upgradableDice.length);
@@ -133,7 +142,7 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
 
             const upgradedDice = state.dice.map((die) =>
                 die === dieToUpgrade
-                    ? { ...die, level: die.level + 1, value: roll(levels[die.level]) }
+                    ? { ...die, level: die.level + 1, value: roll(die.level.valueOf()) }
                     : die
             );
 
@@ -175,16 +184,15 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
                 ...die,
                 value: roll([6, 8, 10, 20][die.level - 1]),
             }));
-            const newHighlights = analyseRoll(newDice.map((die) => die.value)).highlights;
+            analyseRoll(newDice);
 
             return {
                 ...state,
                 checkpoint: nextCheckpoint,
-                required: requiredForCheckpoint(nextCheckpoint),
+                checkpointRequirement: requiredForNextCheckpoint(state.checkpointRequirement, 1.5),
                 round: 1,
-                rerollsLeft: 2,
+                rerollsLeft: state.maxRerolls,
                 dice: newDice,
-                highlights: newHighlights,
                 gained: 0,
                 base: 0,
                 multiplier: 1,

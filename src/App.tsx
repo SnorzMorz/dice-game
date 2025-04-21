@@ -32,7 +32,7 @@ export default function App() {
 
       {/* Status Information */}
       <p className="text-center">
-        Checkpoint {state.checkpoint} • Round {state.round} / {state.roundsPerCheckpoint} • Points required {formatNumber(state.required)}
+        Checkpoint {state.checkpoint} • Round {state.round} / {state.roundsPerCheckpoint} • Points required {formatNumber(state.checkpointRequirement)}
         <br />
         Base {formatNumber(state.base)} × {formatNumber(state.multiplier)} = <span className="text-emerald-400">{formatNumber(state.gained)}</span> • Total {formatNumber(state.points)}
       </p>

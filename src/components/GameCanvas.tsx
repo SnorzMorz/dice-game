@@ -33,7 +33,7 @@ export default function GameCanvas({ state, dispatch }: GameCanvasProps) {
                                 value={d.value}
                                 level={d.level}
                                 position={[xOffRow + j * 1.8, 0, zOff]}
-                                colour={state.highlights[idx]}
+                                color={d.color}
                             />
                         );
                     });
