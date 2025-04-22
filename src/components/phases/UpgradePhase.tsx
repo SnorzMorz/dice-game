@@ -1,7 +1,7 @@
 import HUDButton from '../HUDButton';
-import { Upgrade } from '../../interfaces/Upgrade';
+import { Upgrade } from '../../models/Upgrade';
 import { ActionTypes } from '../../constants/actions';
-import { GameState } from '../../interfaces/GameState';
+import { GameState } from '../../models/GameState';
 
 interface UpgradePhaseProps {
     state: GameState;

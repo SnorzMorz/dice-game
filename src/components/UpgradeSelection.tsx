@@ -1,5 +1,5 @@
 import HUDButton from './HUDButton';
-import { Upgrade } from '@/interfaces/Upgrade';
+import { Upgrade } from '@/models/Upgrade';
 import { ActionTypes } from '@/constants/actions';
 interface UpgradeSelectionProps {
     upgrades: Upgrade[]; // List of available upgrades

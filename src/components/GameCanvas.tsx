@@ -1,9 +1,9 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment } from '@react-three/drei';
 import Dice3D from './Dice3D';
-import { GameState } from '../interfaces/GameState';
+import { GameState } from '../models/GameState';
 import { ActionTypes } from '../constants/actions';
-import { Upgrade } from '../interfaces/Upgrade';
+import { Upgrade } from '../models/Upgrade';
 
 interface GameCanvasProps {
     state: GameState; // The current game state

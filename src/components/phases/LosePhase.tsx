@@ -1,6 +1,6 @@
 import HUDButton from '../HUDButton';
 import { ActionTypes } from '../../constants/actions';
-import { GameState } from '../../interfaces/GameState';
+import { GameState } from '../../models/GameState';
 import { formatNumber } from '../../utils/formatNumber';
 
 interface LosePhaseProps {

@@ -1,6 +1,7 @@
 import HUDButton from '../HUDButton';
 import { ActionTypes } from '../../constants/actions';
-import { GameState } from '../../interfaces/GameState';
+import { GameState } from '../../models/GameState';
+import { formatNumber } from '@/utils/formatNumber';
 
 interface ShopPhaseProps {
     state: GameState;
@@ -15,13 +16,13 @@ export default function ShopPhase({ state, dispatch }: ShopPhaseProps) {
                     onClick={() => dispatch({ type: ActionTypes.BUY_DIE })}
                     disabled={state.points < state.buyCost}
                 >
-                    Buy Die (cost {state.buyCost})
+                    Buy Die (cost {formatNumber(state.buyCost)})
                 </HUDButton>
                 <HUDButton
                     onClick={() => dispatch({ type: ActionTypes.UPGRADE_DIE })}
                     disabled={state.points < state.upgradeCost}
                 >
-                    Upgrade Random Die (cost {state.upgradeCost})
+                    Upgrade Random Die (cost {formatNumber(state.upgradeCost)})
                 </HUDButton>
             </div>
             <HUDButton onClick={() => dispatch({ type: ActionTypes.NEXT_CHECKPOINT })}>Next checkpoint</HUDButton>

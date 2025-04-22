@@ -1,4 +1,4 @@
-import { Upgrade } from "@/interfaces/Upgrade";
+import { Upgrade } from "@/models/Upgrade";
 
 export function selectUpgrades(upgrades: Upgrade[], count: number = 3): Upgrade[] {
     const weightedUpgrades = upgrades.flatMap(upgrade =>
