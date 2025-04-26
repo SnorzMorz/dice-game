@@ -1,4 +1,3 @@
-import { roll } from '../../utils/roll';
 import { Upgrade } from '@/models/Upgrade';
 import { GameState } from '@/models/GameState';
 import { UpgradeRarity } from './upgradeRarity';
@@ -20,20 +19,20 @@ export const upgrades: Upgrade[] = [
     ),
     new Upgrade(
         'buy_discount_10',
-        'Get a 10% discount on buying new dice',
+        'Get a 20% discount on buying new dice',
         UpgradeRarity.COMMON,
         (state: GameState): GameState => ({
             ...state,
-            buyCost: Math.max(1, Math.floor(state.buyCost * 0.9)),
-        }),
+            buyCost: Math.max(1, Math.floor(state.buyCost * 0.8)),
+        })
     ),
     {
         id: 'upgrade_discount_15',
-        name: 'Get a 15% discount on upgrading dice',
+        name: 'Get a 20% discount on upgrading dice',
         rarity: UpgradeRarity.COMMON,
         apply: (state: GameState): GameState => ({
             ...state,
-            upgradeCost: Math.max(1, Math.floor(state.buyCost * 0.85)),
+            upgradeCost: Math.max(1, Math.floor(state.upgradeCost * 0.8)),
         }),
     },
     {
@@ -51,14 +50,18 @@ export const upgrades: Upgrade[] = [
         rarity: UpgradeRarity.COMMON,
         apply: (state: GameState): GameState => {
             const upgradableDice = state.dice.filter((die) => die.canUpgrade());
-            if (upgradableDice.length < 3) {
-                return state;
-            }
-            const diceToUpgrade = upgradableDice.sort(() => 0.5 - Math.random()).slice(0, 3);
-            diceToUpgrade.forEach((die) => {
-                die.upgradeLevel();
-            });
-            return state;
+            const diceToUpgrade = upgradableDice
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 3);
+
+            const newDice = state.dice.map((die) =>
+                diceToUpgrade.includes(die) ? die.upgradeLevel() : die
+            );
+
+            return {
+                ...state,
+                dice: newDice,
+            };
         },
     },
     {
@@ -69,7 +72,7 @@ export const upgrades: Upgrade[] = [
             ...state,
             dice: [
                 ...state.dice,
-                new Die(DiceLevels.LEVEL_2,),
+                new Die(DiceLevels.LEVEL_2),
             ],
         }),
     },
@@ -98,7 +101,7 @@ export const upgrades: Upgrade[] = [
         apply: (state: GameState): GameState => ({
             ...state,
             checkpointRequirement: Math.ceil(state.checkpointRequirement * 0.6),
-            upgradeCost: Math.ceil(state.upgradeCost * 1.4),
+            upgradeCost: Math.ceil(state.upgradeCost * 2),
         }),
     },
     {
@@ -122,54 +125,52 @@ export const upgrades: Upgrade[] = [
     },
     {
         id: 'all_dice_level',
-        name: 'Upgrade all dice by 1 level',
+        name: 'Upgrade all dice once',
         rarity: UpgradeRarity.RARE,
         apply: (state: GameState): GameState => {
-            state.dice.forEach((die) => {
-                die.upgradeLevel();
-            });
-            return state;
+            const newDice = state.dice.map((die) => die.upgradeLevel());
+            return {
+                ...state,
+                dice: newDice,
+            };
+        },
+    },
+    {
+        id: 'all_dice_level_2',
+        name: 'Set all dice to level 12-sided dice',
+        rarity: UpgradeRarity.EPIC,
+        apply: (state: GameState): GameState => {
+            const newDice = state.dice.map((die) => die.setLevel(DiceLevels.LEVEL_3));
+            return {
+                ...state,
+                dice: newDice,
+            };
         },
     },
     {
         id: 'dice_reset',
-        name: 'Reset all dice to level 1, but gain 2 extra rerolls',
+        name: 'Reset all dice to 6-sided dice, but gain 4 extra rerolls',
         rarity: UpgradeRarity.EPIC,
         apply: (state: GameState): GameState => {
-            state.dice.forEach((die) => {
-                die.resetLevel();
-            })
+            const newDice = state.dice.map((die) => die.resetLevel());
             return {
                 ...state,
-                maxRerolls: state.maxRerolls + 2,
+                dice: newDice,
+                maxRerolls: state.maxRerolls + 4,
             };
-        }
-    },
-    {
-        id: 'dice_reset',
-        name: 'Reset all dice to level 1, but gain 3 extra rerolls',
-        rarity: UpgradeRarity.EPIC,
-        apply: (state: GameState): GameState => {
-            state.dice.forEach((die) => {
-                die.resetLevel();
-            })
-            return {
-                ...state,
-                maxRerolls: state.maxRerolls + 3,
-            };
-        }
+        },
     },
     {
         id: 'max_dice',
         name: 'Upgrade all dice to max level, but have one less round per checkpoint',
         rarity: UpgradeRarity.LEGENDARY,
         apply: (state: GameState): GameState => {
-            state.dice.forEach((die) => {
-                die.level = DiceLevels.LEVEL_5;
-                die.value = roll(DiceLevels.LEVEL_5);
-            });
+            const newDice = state.dice.map(
+                (die) => new Die(DiceLevels.LEVEL_5, die.color, die.multiplier)
+            );
             return {
                 ...state,
+                dice: newDice,
                 roundsPerCheckpoint: Math.max(1, state.roundsPerCheckpoint - 1),
             };
         },
@@ -178,11 +179,9 @@ export const upgrades: Upgrade[] = [
         id: 'checkpoint_growth',
         name: 'Decrease the checkpoint growth multiplier by 20%',
         rarity: UpgradeRarity.LEGENDARY,
-        apply: (state: GameState): GameState => {
-            return {
-                ...state,
-                checkpointMultiplier: Math.max(1, state.checkpointMultiplier * 0.8),
-            };
-        },
+        apply: (state: GameState): GameState => ({
+            ...state,
+            checkpointMultiplier: Math.max(1, state.checkpointMultiplier * 0.8),
+        }),
     },
 ];

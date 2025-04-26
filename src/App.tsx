@@ -1,4 +1,4 @@
-import { useReducer } from 'react';
+import { useReducer, Fragment } from 'react';
 import { initialState, reducer } from './GameEngine';
 import { Phases } from './constants/phases';
 import RollPhase from './components/phases/RollPhase';
@@ -26,6 +26,23 @@ export default function App() {
     }
   };
 
+
+  const formatTotalBreakdown = () => {
+    const groups = state.dice.reduce((acc, die) => {
+      acc[die.value] = acc[die.value] || { count: 0, color: die.color };
+      acc[die.value].count += 1;
+      return acc;
+    }, {} as Record<number, { count: number; color: string }>);
+
+    return Object.entries(groups)
+      .map(([value, { count, color }]) => (
+        <span key={value} style={{ color }}>
+          {value} × {count}
+        </span>
+      ))
+      .reduce((prev, curr) => [prev, " + ", curr]);
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center gap-4 p-4 bg-gradient-to-br from-slate-800 to-slate-900 text-white">
       <h1 className="text-3xl font-extrabold">A game of Dice and Luck</h1>
@@ -34,7 +51,9 @@ export default function App() {
       <p className="text-center">
         Checkpoint {state.checkpoint} • Round {state.round} / {state.roundsPerCheckpoint} • Points required {formatNumber(state.checkpointRequirement)}
         <br />
-        Base {formatNumber(state.base)} × {formatNumber(state.multiplier)} = <span className="text-emerald-400">{formatNumber(state.gained)}</span> • Total {formatNumber(state.points)}
+        {formatTotalBreakdown()}<span className="text-white"> = {formatNumber(state.gained)}</span>
+        <br />
+        Total Points: <span className="text-emerald-400">{formatNumber(state.points)}</span>
       </p>
 
       {/* Dice Display */}

@@ -6,55 +6,11 @@ import { DICE_COMBO_COLORS } from './constants/diceColors';
 import { ActionTypes } from './constants/actions';
 import { Phases } from './constants/phases';
 import { Die } from './models/Die';
+import { calculateRollStats } from './utils/calculateRollStats';
+import { updateDiceColors } from './utils/updateDiceColors';
 
 function requiredForNextCheckpoint(previousCheckPointRequirement: number, multiplier: number): number {
     return Math.floor(previousCheckPointRequirement * multiplier);
-}
-
-function calculateRollStats(dice: Die[]): {
-    base: number;
-    multiplier: number;
-    total: number;
-    groups: Record<number, Die[]>;
-} {
-    const base = dice.reduce((acc, die) => acc + die.value, 0);
-    const freq: Record<number, Die[]> = {};
-    dice.forEach((die) => (freq[die.value] ??= []).push(die));
-
-    let multiplier = 1;
-    Object.values(freq).forEach((diceGroup) => {
-        if (diceGroup.length >= 2) {
-            multiplier *= diceGroup.length;
-        }
-    });
-
-    return { base, multiplier, total: base * multiplier, groups: freq };
-}
-
-function updateDiceColors(groups: Record<number, Die[]>): void {
-    let colorIndex = 0;
-    Object.values(groups).forEach((diceGroup) => {
-        if (diceGroup.length >= 2) {
-            const color = DICE_COMBO_COLORS[colorIndex % DICE_COMBO_COLORS.length];
-            colorIndex += 1;
-            diceGroup.forEach((die) => die.color = color);
-        }
-        else {
-            diceGroup.forEach((die) => {
-                die.resetColor();
-            });
-        }
-    });
-}
-
-function analyseRoll(dice: Die[]): {
-    base: number;
-    multiplier: number;
-    total: number;
-} {
-    const { base, multiplier, total, groups } = calculateRollStats(dice);
-    updateDiceColors(groups);
-    return { base, multiplier, total };
 }
 
 export function initialState(): GameState {
@@ -74,6 +30,8 @@ export function initialState(): GameState {
         buyCost: 10,
         upgradeCost: 10,
         checkpointMultiplier: 1.4,
+        buyMultiplier: 2,
+        upgradeMultiplier: 1.5,
     };
 }
 
@@ -81,40 +39,44 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
 
     switch (action.type) {
         case ActionTypes.ROLL: {
-            state.dice.forEach((die) => die.roll());
-            analyseRoll(state.dice);
-            return { ...state, rerollsLeft: state.rerollsLeft - 1 };
+            const newDice = state.dice.map((die) => die.roll());
+            const coloredDice = updateDiceColors(newDice);
+            const { base, total } = calculateRollStats(coloredDice);
+
+            return {
+                ...state,
+                dice: coloredDice,
+                rerollsLeft: state.rerollsLeft - 1,
+                base: base,
+                gained: total,
+            };
         }
 
         case ActionTypes.FINISH_ROLL: {
             const isLastRound = state.round === state.roundsPerCheckpoint;
             if (isLastRound) {
-                const { base, multiplier, total } = analyseRoll(state.dice);
+                const { base, total } = calculateRollStats(state.dice);
                 const passedCheckpoint = state.points + total >= state.checkpointRequirement;
                 return {
                     ...state,
                     points: state.points + total,
                     gained: total,
-                    base,
-                    multiplier,
+                    base: base,
                     rerollsLeft: state.maxRerolls,
                     phase: passedCheckpoint ? Phases.SHOP : Phases.LOSE,
                 };
             }
 
-            const newDice = state.dice.map((die) => {
-                die.roll();
-                return die;
-            });
-            const { base, multiplier, total } = analyseRoll(newDice);
+            const newDice = state.dice.map((die) => die.roll());
+            const coloredDice = updateDiceColors(newDice);
+            const { base, total } = calculateRollStats(coloredDice);
 
             return {
                 ...state,
                 points: state.points + total,
                 gained: total,
                 base,
-                multiplier,
-                dice: newDice,
+                dice: coloredDice,
                 rerollsLeft: state.maxRerolls,
                 round: state.round + 1,
             };
@@ -125,7 +87,7 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
                 ...state,
                 points: state.points - state.buyCost,
                 dice: [...state.dice, new Die()],
-                buyCost: Math.ceil(state.buyCost * 2),
+                buyCost: Math.ceil(state.buyCost * state.buyMultiplier),
             };
         }
 
@@ -136,14 +98,16 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
             const randomIndex = Math.floor(Math.random() * upgradableDice.length);
             const dieToUpgrade = upgradableDice[randomIndex];
 
-            dieToUpgrade.upgradeLevel();
-
-            console.log('Upgraded die:', dieToUpgrade);
+            // Replace the upgraded die with a new instance
+            const newDice = state.dice.map((die) =>
+                die === dieToUpgrade ? die.upgradeLevel() : die
+            );
 
             return {
                 ...state,
+                dice: newDice,
                 points: state.points - state.upgradeCost,
-                upgradeCost: Math.ceil(state.upgradeCost * 1.5),
+                upgradeCost: Math.ceil(state.upgradeCost * state.upgradeMultiplier),
             };
         }
 
@@ -172,16 +136,18 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
                 };
             }
 
-            state.dice.forEach((die) => die.roll());
-            analyseRoll(state.dice);
+            const newDice = state.dice.map((die) => die.roll());
+            const coloredDice = updateDiceColors(newDice);
+            const { base, total } = calculateRollStats(coloredDice);
 
             return {
                 ...state,
                 checkpoint: nextCheckpoint,
-                checkpointRequirement: requiredForNextCheckpoint(state.checkpointRequirement, 1.5),
+                checkpointRequirement: requiredForNextCheckpoint(state.checkpointRequirement, state.checkpointMultiplier),
                 round: 1,
                 rerollsLeft: state.maxRerolls,
-                gained: 0,
+                dice: coloredDice,
+                gained: total,
                 base: 0,
                 multiplier: 1,
                 phase: Phases.ROLL,

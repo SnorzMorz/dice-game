@@ -17,6 +17,8 @@ export interface GameState {
     base: number; // Base score of the last roll
     multiplier: number; // Multiplier applied to the base score
     buyCost: number; // Cost to buy a new die
+    buyMultiplier: number; // Multiplier for the cost of buying a die
     upgradeCost: number; // Cost to upgrade a die
+    upgradeMultiplier: number; // Multiplier for the cost of upgrading a die
     availableUpgrades?: Upgrade[]; // List of available upgrades during the upgrade selection phase
 }

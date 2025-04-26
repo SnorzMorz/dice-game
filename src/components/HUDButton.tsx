@@ -8,15 +8,15 @@ interface HUDButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 export default function HUDButton({ children, rarity, ...props }: HUDButtonProps) {
     // Define a gradient color palette from indigo to red
     const rarityColors = [
-        'bg-indigo-600', // Common (rarity 1)
-        'bg-purple-600', // Uncommon (rarity 2)
-        'bg-pink-600',   // Rare (rarity 3)
-        'bg-rose-600',   // Epic (rarity 4)
-        'bg-red-600',    // Legendary (rarity 5)
+        'bg-indigo-400', // Common (rarity 1)
+        'bg-indigo-600', // Uncommon (rarity 2)
+        'bg-pink-400',   // Rare (rarity 3)
+        'bg-pink-600',   // Epic (rarity 4)
+        'bg-red-500',    // Legendary (rarity 5)
     ];
 
     // Select the color based on the rarity
-    const bgColor = rarity ? rarityColors[rarity.valueOf() - 1] : 'bg-indigo-600';
+    const bgColor = rarity ? rarityColors[rarity.valueOf() - 1] : 'bg-indigo-400';
 
     return (
         <button
