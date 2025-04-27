@@ -18,7 +18,7 @@ export const upgrades: Upgrade[] = [
         })
     ),
     new Upgrade(
-        'buy_discount_10',
+        'buy_discount_20',
         'Get a 20% discount on buying new dice',
         UpgradeRarity.COMMON,
         (state: GameState): GameState => ({
@@ -27,21 +27,12 @@ export const upgrades: Upgrade[] = [
         })
     ),
     {
-        id: 'upgrade_discount_15',
+        id: 'upgrade_discount_20',
         name: 'Get a 20% discount on upgrading dice',
         rarity: UpgradeRarity.COMMON,
         apply: (state: GameState): GameState => ({
             ...state,
             upgradeCost: Math.max(1, Math.floor(state.upgradeCost * 0.8)),
-        }),
-    },
-    {
-        id: 'checkpoint_boost',
-        name: 'Reduce the points required for checkpoints by 10%',
-        rarity: UpgradeRarity.UNCOMMON,
-        apply: (state: GameState): GameState => ({
-            ...state,
-            checkpointRequirement: Math.ceil(state.checkpointRequirement * 0.9),
         }),
     },
     {
@@ -63,6 +54,24 @@ export const upgrades: Upgrade[] = [
                 dice: newDice,
             };
         },
+    },
+    {
+        id: 'checkpoint_boost',
+        name: 'Reduce the points required for checkpoints by 10%',
+        rarity: UpgradeRarity.COMMON,
+        apply: (state: GameState): GameState => ({
+            ...state,
+            checkpointRequirement: Math.ceil(state.checkpointRequirement * 0.9),
+        }),
+    },
+    {
+        id: 'checkpoint_boost',
+        name: 'Reduce the points required for checkpoints by 15%',
+        rarity: UpgradeRarity.UNCOMMON,
+        apply: (state: GameState): GameState => ({
+            ...state,
+            checkpointRequirement: Math.ceil(state.checkpointRequirement * 0.85),
+        }),
     },
     {
         id: 'extra_dice_8',
@@ -102,6 +111,15 @@ export const upgrades: Upgrade[] = [
             ...state,
             checkpointRequirement: Math.ceil(state.checkpointRequirement * 0.6),
             upgradeCost: Math.ceil(state.upgradeCost * 2),
+        }),
+    },
+    {
+        id: 'no_roll_1',
+        name: 'Dice will not roll 1 anymore',
+        rarity: UpgradeRarity.RARE,
+        apply: (state: GameState): GameState => ({
+            ...state,
+            minimumRoll: 2,
         }),
     },
     {
@@ -177,11 +195,11 @@ export const upgrades: Upgrade[] = [
     },
     {
         id: 'checkpoint_growth',
-        name: 'Decrease the checkpoint growth multiplier by 20%',
+        name: 'Decrease the checkpoint growth multiplier by 10%',
         rarity: UpgradeRarity.LEGENDARY,
         apply: (state: GameState): GameState => ({
             ...state,
-            checkpointMultiplier: Math.max(1, state.checkpointMultiplier * 0.8),
+            checkpointMultiplier: Math.max(1, state.checkpointMultiplier * 0.9),
         }),
     },
 ];

@@ -8,6 +8,7 @@ import { Phases } from './constants/phases';
 import { Die } from './models/Die';
 import { calculateRollStats } from './utils/calculateRollStats';
 import { updateDiceColors } from './utils/updateDiceColors';
+import { DiceLevels } from './constants/diceLevels';
 
 function requiredForNextCheckpoint(previousCheckPointRequirement: number, multiplier: number): number {
     return Math.floor(previousCheckPointRequirement * multiplier);
@@ -32,6 +33,8 @@ export function initialState(): GameState {
         checkpointMultiplier: 1.4,
         buyMultiplier: 2,
         upgradeMultiplier: 1.5,
+        maximumRoll: DiceLevels.LEVEL_5.valueOf(),
+        minimumRoll: 1,
     };
 }
 
@@ -39,7 +42,7 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
 
     switch (action.type) {
         case ActionTypes.ROLL: {
-            const newDice = state.dice.map((die) => die.roll());
+            const newDice = state.dice.map((die) => die.roll(state.minimumRoll, state.maximumRoll));
             const coloredDice = updateDiceColors(newDice);
             const { base, total } = calculateRollStats(coloredDice);
 
@@ -67,7 +70,7 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
                 };
             }
 
-            const newDice = state.dice.map((die) => die.roll());
+            const newDice = state.dice.map((die) => die.roll(state.minimumRoll, state.maximumRoll));
             const coloredDice = updateDiceColors(newDice);
             const { base, total } = calculateRollStats(coloredDice);
 
@@ -136,7 +139,7 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
                 };
             }
 
-            const newDice = state.dice.map((die) => die.roll());
+            const newDice = state.dice.map((die) => die.roll(state.minimumRoll, state.maximumRoll));
             const coloredDice = updateDiceColors(newDice);
             const { base, total } = calculateRollStats(coloredDice);
 

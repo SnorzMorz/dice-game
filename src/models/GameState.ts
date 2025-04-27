@@ -21,4 +21,6 @@ export interface GameState {
     upgradeCost: number; // Cost to upgrade a die
     upgradeMultiplier: number; // Multiplier for the cost of upgrading a die
     availableUpgrades?: Upgrade[]; // List of available upgrades during the upgrade selection phase
+    minimumRoll: number; // Minimum roll value for all dice
+    maximumRoll: number; // Maximum roll value for all dice
 }

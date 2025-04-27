@@ -7,17 +7,33 @@ export class Die {
     color: string;
     multiplier: number;
 
-    constructor(level: DiceLevels = DiceLevels.LEVEL_1, color: string = '#555', value?: number, multiplier: number = 1) {
+    constructor(
+        level: DiceLevels = DiceLevels.LEVEL_1,
+        color: string = '#555',
+        value?: number,
+        multiplier: number = 1,
+        maximumRoll: number = DiceLevels.LEVEL_5.valueOf(),
+        minimumRoll: number = 1
+    ) {
         this.level = level;
         this.color = color;
         this.multiplier = multiplier;
-        this.value = value !== undefined ? value : Math.floor(Math.random() * level.valueOf()) + 1;
+
+
+        const levelMaxRoll = this.level.valueOf();
+        const effectiveMaxRoll = Math.min(levelMaxRoll, maximumRoll);
+
+        this.value = value !== undefined
+            ? value
+            : Math.floor(Math.random() * (effectiveMaxRoll - minimumRoll + 1)) + minimumRoll;
+
         console.log(this.value, level, color, multiplier);
     }
 
+
     // Returns a new Die instance with a rolled value
-    roll(): Die {
-        return new Die(this.level, this.color, undefined, this.multiplier);
+    roll(minimumRoll: number, maximumRoll: number): Die {
+        return new Die(this.level, this.color, undefined, this.multiplier, maximumRoll, minimumRoll);
     }
 
     // Returns a new Die instance with an upgraded level (if possible)
