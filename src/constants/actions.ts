@@ -4,6 +4,6 @@ export enum ActionTypes {
     BUY_DIE = 'BUY_DIE',
     UPGRADE_DIE = 'UPGRADE_DIE',
     APPLY_UPGRADE = 'APPLY_UPGRADE',
-    NEXT_CHECKPOINT = 'NEXT_CHECKPOINT',
+    NEXT_LEVEL = 'NEXT_LEVEL',
     RESET = 'RESET',
 }

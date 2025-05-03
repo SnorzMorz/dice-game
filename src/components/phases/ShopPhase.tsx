@@ -48,8 +48,8 @@ export default function ShopPhase({ state, dispatch }: ShopPhaseProps) {
                     Upgrade Random Die (cost {formatNumber(state.upgradeCost)})
                 </HUDButton>
             </div>
-            <HUDButton onClick={() => dispatch({ type: ActionTypes.NEXT_CHECKPOINT })}>
-                Next checkpoint
+            <HUDButton onClick={() => dispatch({ type: ActionTypes.NEXT_LEVEL })}>
+                Next Level
             </HUDButton>
         </div>
     );

@@ -56,21 +56,21 @@ export const upgrades: Upgrade[] = [
         },
     },
     {
-        id: 'checkpoint_boost',
-        name: 'Reduce the points required for checkpoints by 10%',
+        id: 'level_boost_10',
+        name: 'Reduce the points required for levels by 10%',
         rarity: UpgradeRarity.COMMON,
         apply: (state: GameState): GameState => ({
             ...state,
-            checkpointRequirement: Math.ceil(state.checkpointRequirement * 0.9),
+            levelRequirement: Math.ceil(state.levelRequirement * 0.9),
         }),
     },
     {
-        id: 'checkpoint_boost',
-        name: 'Reduce the points required for checkpoints by 15%',
+        id: 'level_boost_15',
+        name: 'Reduce the points required for levels by 15%',
         rarity: UpgradeRarity.UNCOMMON,
         apply: (state: GameState): GameState => ({
             ...state,
-            checkpointRequirement: Math.ceil(state.checkpointRequirement * 0.85),
+            levelRequirement: Math.ceil(state.levelRequirement * 0.85),
         }),
     },
     {
@@ -95,21 +95,21 @@ export const upgrades: Upgrade[] = [
         }),
     },
     {
-        id: 'checkpoint_boost',
-        name: 'Reduce the points required for checkpoints by 20%',
+        id: 'level_boost_20',
+        name: 'Reduce the points required for levels by 20%',
         rarity: UpgradeRarity.UNCOMMON,
         apply: (state: GameState): GameState => ({
             ...state,
-            checkpointRequirement: Math.ceil(state.checkpointRequirement * 0.8),
+            levelRequirement: Math.ceil(state.levelRequirement * 0.8),
         }),
     },
     {
-        id: 'checkpoint_requirements_40',
-        name: 'Reduce the points required for checkpoints by 40%, but increase the cost of upgrading dice by 100%',
+        id: 'level_requirements_40',
+        name: 'Reduce the points required for levels by 40%, but increase the cost of upgrading dice by 100%',
         rarity: UpgradeRarity.RARE,
         apply: (state: GameState): GameState => ({
             ...state,
-            checkpointRequirement: Math.ceil(state.checkpointRequirement * 0.6),
+            levelRequirement: Math.ceil(state.levelRequirement * 0.6),
             upgradeCost: Math.ceil(state.upgradeCost * 2),
         }),
     },
@@ -134,11 +134,11 @@ export const upgrades: Upgrade[] = [
     },
     {
         id: 'bonus_round',
-        name: 'Gain an extra round per checkpoint',
+        name: 'Gain an extra round per level',
         rarity: UpgradeRarity.RARE,
         apply: (state: GameState): GameState => ({
             ...state,
-            roundsPerCheckpoint: state.roundsPerCheckpoint + 1,
+            roundsPerLevel: state.roundsPerLevel + 1,
         }),
     },
     {
@@ -180,7 +180,7 @@ export const upgrades: Upgrade[] = [
     },
     {
         id: 'max_dice',
-        name: 'Upgrade all dice to max level, but have one less round per checkpoint',
+        name: 'Upgrade all dice to max level, but have one less round per level',
         rarity: UpgradeRarity.LEGENDARY,
         apply: (state: GameState): GameState => {
             const newDice = state.dice.map(
@@ -189,17 +189,17 @@ export const upgrades: Upgrade[] = [
             return {
                 ...state,
                 dice: newDice,
-                roundsPerCheckpoint: Math.max(1, state.roundsPerCheckpoint - 1),
+                roundsPerLevel: Math.max(1, state.roundsPerLevel - 1),
             };
         },
     },
     {
-        id: 'checkpoint_growth',
-        name: 'Decrease the checkpoint growth multiplier by 10%',
+        id: 'level_growth',
+        name: 'Decrease the level growth multiplier by 10%',
         rarity: UpgradeRarity.LEGENDARY,
         apply: (state: GameState): GameState => ({
             ...state,
-            checkpointMultiplier: Math.max(1, state.checkpointMultiplier * 0.9),
+            levelMultiplier: Math.max(1, state.levelMultiplier * 0.9),
         }),
     },
 ];

@@ -40,7 +40,7 @@ export default function App() {
           {value} × {count}
         </span>
       ))
-      .reduce((prev, curr) => [prev, " + ", curr]);
+      .reduce((prev, curr) => [prev, " + ", curr] as any) as any; // Type assertion to avoid TS error
   };
 
   return (
@@ -49,7 +49,7 @@ export default function App() {
 
       {/* Status Information */}
       <p className="text-center">
-        Checkpoint {state.checkpoint} • Round {state.round} / {state.roundsPerCheckpoint} • Points required {formatNumber(state.checkpointRequirement)}
+        Level {state.level} • Round {state.round} / {state.roundsPerLevel} • Points required {formatNumber(state.levelRequirement)}
         <br />
         {formatTotalBreakdown()}<span className="text-white"> = {formatNumber(state.gained)}</span>
         <br />

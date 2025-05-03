@@ -8,11 +8,11 @@ export interface GameState {
     points: number; // Total points accumulated
     rerollsLeft: number; // Number of rerolls left in the current round
     maxRerolls: number; // Maximum number of rerolls allowed in a round
-    roundsPerCheckpoint: number; // Number of rounds per checkpoint
-    checkpoint: number; // Current checkpoint number
-    checkpointMultiplier: number; // Multiplier for the next checkpoint
-    round: number; // Current round within the checkpoint
-    checkpointRequirement: number; // Points required to pass the current checkpoint
+    roundsPerLevel: number; // Number of rounds per level
+    level: number; // Current level number
+    levelMultiplier: number; // Multiplier for the next level
+    round: number; // Current round within the level
+    levelRequirement: number; // Points required to pass the current level
     gained: number; // Points gained in the last roll
     base: number; // Base score of the last roll
     multiplier: number; // Multiplier applied to the base score

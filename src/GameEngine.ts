@@ -10,8 +10,8 @@ import { calculateRollStats } from './utils/calculateRollStats';
 import { updateDiceColors } from './utils/updateDiceColors';
 import { DiceLevels } from './constants/diceLevels';
 
-function requiredForNextCheckpoint(previousCheckPointRequirement: number, multiplier: number): number {
-    return Math.floor(previousCheckPointRequirement * multiplier);
+function requiredForNextLevel(previousLevelRequirement: number, multiplier: number): number {
+    return Math.floor(previousLevelRequirement * multiplier);
 }
 
 export function initialState(): GameState {
@@ -21,16 +21,16 @@ export function initialState(): GameState {
         points: 0,
         rerollsLeft: 2,
         maxRerolls: 2,
-        checkpoint: 1,
-        roundsPerCheckpoint: 5,
+        level: 1,
+        roundsPerLevel: 5,
         round: 1,
-        checkpointRequirement: 10,
+        levelRequirement: 10,
         gained: 0,
         base: 0,
         multiplier: 1,
         buyCost: 10,
         upgradeCost: 10,
-        checkpointMultiplier: 1.4,
+        levelMultiplier: 1.4,
         buyMultiplier: 2,
         upgradeMultiplier: 1.5,
         maximumRoll: DiceLevels.LEVEL_5.valueOf(),
@@ -56,17 +56,17 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
         }
 
         case ActionTypes.FINISH_ROLL: {
-            const isLastRound = state.round === state.roundsPerCheckpoint;
+            const isLastRound = state.round === state.roundsPerLevel;
             if (isLastRound) {
                 const { base, total } = calculateRollStats(state.dice);
-                const passedCheckpoint = state.points + total >= state.checkpointRequirement;
+                const passedLevel = state.points + total >= state.levelRequirement;
                 return {
                     ...state,
                     points: state.points + total,
                     gained: total,
                     base: base,
                     rerollsLeft: state.maxRerolls,
-                    phase: passedCheckpoint ? Phases.SHOP : Phases.LOSE,
+                    phase: passedLevel ? Phases.SHOP : Phases.LOSE,
                 };
             }
 
@@ -120,20 +120,20 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
             return {
                 ...newState,
                 phase: Phases.ROLL,
-                checkpoint: newState.checkpoint + 1,
+                level: newState.level + 1,
                 round: 1,
                 availableUpgrades: [],
             };
         }
 
-        case ActionTypes.NEXT_CHECKPOINT: {
-            const nextCheckpoint = state.checkpoint + 1;
+        case ActionTypes.NEXT_LEVEL: {
+            const nextLevel = state.level + 1;
 
-            if (nextCheckpoint % 5 === 0) {
+            if (nextLevel % 5 === 0) {
                 const availableUpgrades = selectUpgrades(upgrades, 3);
                 return {
                     ...state,
-                    checkpoint: nextCheckpoint,
+                    level: nextLevel,
                     phase: Phases.UPGRADE,
                     availableUpgrades: availableUpgrades,
                 };
@@ -145,8 +145,8 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
 
             return {
                 ...state,
-                checkpoint: nextCheckpoint,
-                checkpointRequirement: requiredForNextCheckpoint(state.checkpointRequirement, state.checkpointMultiplier),
+                level: nextLevel,
+                levelRequirement: requiredForNextLevel(state.levelRequirement, state.levelMultiplier),
                 round: 1,
                 rerollsLeft: state.maxRerolls,
                 dice: coloredDice,

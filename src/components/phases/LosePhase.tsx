@@ -12,7 +12,7 @@ export default function LosePhase({ state, dispatch }: LosePhaseProps) {
     return (
         <div className="text-center">
             <p className="text-red-400 text-xl font-semibold">
-                Game Over! You needed {formatNumber(state.checkpointRequirement)} points but only had {formatNumber(state.points)}.
+                Game Over! You needed {formatNumber(state.levelRequirement)} points but only had {formatNumber(state.points)}.
             </p>
             <HUDButton onClick={() => dispatch({ type: ActionTypes.RESET })}>Restart</HUDButton>
         </div>
