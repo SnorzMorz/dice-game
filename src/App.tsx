@@ -2,7 +2,6 @@ import { useReducer, Fragment } from 'react';
 import { initialState, reducer } from './GameEngine';
 import { Phases } from './constants/phases';
 import RollPhase from './components/phases/RollPhase';
-import UpgradePhase from './components/phases/UpgradePhase';
 import ShopPhase from './components/phases/ShopPhase';
 import LosePhase from './components/phases/LosePhase';
 import GameCanvas from './components/GameCanvas';
@@ -15,8 +14,6 @@ export default function App() {
     switch (state.phase) {
       case Phases.ROLL:
         return <RollPhase state={state} dispatch={dispatch} />;
-      case Phases.UPGRADE:
-        return <UpgradePhase state={state} dispatch={dispatch} />;
       case Phases.SHOP:
         return <ShopPhase state={state} dispatch={dispatch} />;
       case Phases.LOSE:

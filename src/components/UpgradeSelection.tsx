@@ -8,7 +8,7 @@ interface UpgradeSelectionProps {
 
 export default function UpgradeSelection({ upgrades, dispatch }: UpgradeSelectionProps) {
     const handleUpgradeSelection = (upgrade: Upgrade) => {
-        dispatch({ type: ActionTypes.APPLY_UPGRADE, upgrade });
+        dispatch({ type: ActionTypes.BUY_GLOBAL_UPGRADE, upgrade });
     };
 
     return (

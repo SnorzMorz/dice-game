@@ -35,6 +35,7 @@ export function initialState(): GameState {
         upgradeMultiplier: 1.5,
         maximumRoll: DiceLevels.LEVEL_5.valueOf(),
         minimumRoll: 1,
+        availableUpgrades: []
     };
 }
 
@@ -114,30 +115,27 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
             };
         }
 
-        case ActionTypes.APPLY_UPGRADE: {
-            if (!action.upgrade) return state;
+        case ActionTypes.BUY_GLOBAL_UPGRADE: {
+            if (!action.upgrade || state.points < 100) return state;
             const newState = action.upgrade.apply(state);
+            const remainingUpgrades = newState.availableUpgrades.filter(
+                (u) => u.id !== action.upgrade!.id
+            );
+
             return {
                 ...newState,
-                phase: Phases.ROLL,
-                level: newState.level + 1,
-                round: 1,
-                availableUpgrades: [],
+                points: newState.points - 100,
+                availableUpgrades: remainingUpgrades,
             };
         }
 
         case ActionTypes.NEXT_LEVEL: {
             const nextLevel = state.level + 1;
 
-            if (nextLevel % 5 === 0) {
-                const availableUpgrades = selectUpgrades(upgrades, 3);
-                return {
-                    ...state,
-                    level: nextLevel,
-                    phase: Phases.UPGRADE,
-                    availableUpgrades: availableUpgrades,
-                };
-            }
+            const shouldRefreshUpgrades = nextLevel % 5 === 0;
+            const refreshedUpgrades = shouldRefreshUpgrades
+                ? selectUpgrades(upgrades, 3)
+                : state.availableUpgrades;
 
             const newDice = state.dice.map((die) => die.roll(state.minimumRoll, state.maximumRoll));
             const coloredDice = updateDiceColors(newDice);
@@ -154,6 +152,7 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
                 base: 0,
                 multiplier: 1,
                 phase: Phases.ROLL,
+                availableUpgrades: refreshedUpgrades,
             };
         }
 
