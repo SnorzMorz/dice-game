@@ -29,13 +29,14 @@ export function initialState(): GameState {
         base: 0,
         multiplier: 1,
         buyCost: 10,
-        upgradeCost: 10,
+        upgradeDiceCost: 10,
         levelMultiplier: 1.4,
         buyMultiplier: 2,
-        upgradeMultiplier: 1.5,
+        upgradeDiceMultiplier: 1.5,
         maximumRoll: DiceLevels.LEVEL_5.valueOf(),
         minimumRoll: 1,
-        availableUpgrades: []
+        availableUpgrades: [],
+        upgradeCost: 100,
     };
 }
 
@@ -110,22 +111,23 @@ export function reducer(state: GameState, action: { type: ActionTypes; upgrade?:
             return {
                 ...state,
                 dice: newDice,
-                points: state.points - state.upgradeCost,
-                upgradeCost: Math.ceil(state.upgradeCost * state.upgradeMultiplier),
+                points: state.points - state.upgradeDiceCost,
+                upgradeDiceCost: Math.ceil(state.upgradeDiceCost * state.upgradeDiceMultiplier),
             };
         }
 
         case ActionTypes.BUY_GLOBAL_UPGRADE: {
-            if (!action.upgrade || state.points < 100) return state;
+            if (!action.upgrade || state.points < state.upgradeCost) return state;
             const newState = action.upgrade.apply(state);
-            const remainingUpgrades = newState.availableUpgrades.filter(
-                (u) => u.id !== action.upgrade!.id
+            const updatedUpgrades = newState.availableUpgrades.map((u) =>
+                u.id === action.upgrade?.id ? u.disable() : u
             );
 
             return {
                 ...newState,
-                points: newState.points - 100,
-                availableUpgrades: remainingUpgrades,
+                points: newState.points - state.upgradeCost,
+                availableUpgrades: updatedUpgrades,
+                upgradeCost: Math.ceil(state.upgradeCost * 1.5),
             };
         }
 

@@ -20,7 +20,7 @@ export default function HUDButton({ children, rarity, ...props }: HUDButtonProps
 
     return (
         <button
-            className={`px-4 py-2 rounded-md text-white disabled:opacity-40 active:scale-95 transition-transform ${bgColor}`}
+            className={`px-4 py-2 rounded-md text-white disabled:opacity-40 active:scale-95 transition-transform max-w-full ${bgColor}`}
             {...props}
         >
             {children}
