@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import LeaderboardModal from './components/LeaderboardModal';
 import { useReducer, Fragment } from 'react';
 import { initialState, reducer } from './GameEngine';
 import { Phases } from './constants/phases';
@@ -9,6 +11,7 @@ import { formatNumber } from './utils/formatNumber';
 
 export default function App() {
   const [state, dispatch] = useReducer(reducer, null, initialState);
+  const [isLeaderboardOpen, setLeaderboardOpen] = useState(false);
 
   const renderPhase = () => {
     switch (state.phase) {
@@ -22,7 +25,6 @@ export default function App() {
         return null;
     }
   };
-
 
   const formatTotalBreakdown = () => {
     const groups = state.dice.reduce((acc, die) => {
@@ -41,8 +43,15 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center gap-4 p-4 bg-gradient-to-br from-slate-800 to-slate-900 text-white">
+    <div className="min-h-screen flex flex-col items-center gap-3 p-4 bg-gradient-to-br from-slate-800 to-slate-900 text-white">
       <h1 className="text-3xl font-extrabold">A game of Dice and Luck</h1>
+      <button
+        className="text-indigo-400 underline hover:text-indigo-300"
+        onClick={() => setLeaderboardOpen(true)}
+      >
+        View Leaderboard
+      </button>
+      <LeaderboardModal isOpen={isLeaderboardOpen} onClose={() => setLeaderboardOpen(false)} />
 
       {/* Status Information */}
       <p className="text-center">
