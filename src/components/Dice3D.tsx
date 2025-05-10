@@ -1,8 +1,11 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
+import { dampE } from 'maath/easing';
 import { Mesh } from 'three';
 import { DiceLevels } from '@/constants/diceLevels';
+
+const ROTATE_SMOOTH = 0.15;      // seconds to reach 63 % of the target
 
 const FACE_LOOKUP: Record<DiceLevels, Record<number, [number, number, number]>> = {
     [DiceLevels.LEVEL_1]: {
@@ -103,13 +106,10 @@ interface Dice3DProps {
 
 export default function Dice3D({ value, level, position, color }: Dice3DProps) {
     const mesh = useRef<Mesh>(null);
-
-    useFrame(() => {
+    useFrame((_state, delta) => {
         if (!mesh.current) return;
         const [rx, ry, rz] = FACE_LOOKUP[level][value];
-        mesh.current.rotation.x += (rx - mesh.current.rotation.x) * 0.1;
-        mesh.current.rotation.y += (ry - mesh.current.rotation.y) * 0.1;
-        mesh.current.rotation.z += (rz - mesh.current.rotation.z) * 0.1;
+        dampE(mesh.current.rotation, [rx, ry, rz], ROTATE_SMOOTH, delta);
     });
     return (
         <group position={position}>
