@@ -33,7 +33,13 @@ export default function App() {
       return acc;
     }, {} as Record<number, { count: number; color: string }>);
 
-    return Object.entries(groups)
+    // Sort groups by total value (value × count) in descending order
+    const sortedGroups = Object.entries(groups).sort(
+      ([valueA, { count: countA }], [valueB, { count: countB }]) =>
+        Number(valueB) * countB - Number(valueA) * countA
+    );
+
+    return sortedGroups
       .map(([value, { count, color }]) => (
         <span key={value} style={{ color }}>
           {value} × {count}

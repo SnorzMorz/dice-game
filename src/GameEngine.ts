@@ -24,7 +24,7 @@ export function initialState(): GameState {
         level: 1,
         roundsPerLevel: 5,
         round: 1,
-        levelRequirement: 1000,
+        levelRequirement: 10,
         gained: 0,
         base: 0,
         multiplier: 1,

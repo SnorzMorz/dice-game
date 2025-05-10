@@ -54,18 +54,27 @@ export default function ShopPhase({ state, dispatch }: ShopPhaseProps) {
                     Upgrade Random Die (cost {formatNumber(state.upgradeDiceCost)})
                 </HUDButton>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {state.availableUpgrades?.map((upgrade) => (
-                    <HUDButton
-                        key={upgrade.id}
-                        onClick={() => handleBuyUpgrade(upgrade)}
-                        disabled={state.points < (state.upgradeCost * upgrade.rarity.valueOf()) || upgrade.disabled}
-                        rarity={upgrade.rarity}
-                    >
-                        {upgrade.name} (cost {formatNumber(state.upgradeCost * upgrade.rarity.valueOf())})
-                    </HUDButton>
-                ))}
-            </div>
+            {state.availableUpgrades?.length > 0 && (
+                <div className='flex flex-col items-center gap-2'>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {state.availableUpgrades?.map((upgrade) => (
+                            <HUDButton
+                                key={upgrade.id}
+                                onClick={() => handleBuyUpgrade(upgrade)}
+                                disabled={state.points < (state.upgradeCost * upgrade.rarity.valueOf()) || upgrade.disabled}
+                                rarity={upgrade.rarity}
+                            >
+                                {upgrade.disabled
+                                    ? `${upgrade.name} (Already Bought)`
+                                    : `${upgrade.name} (cost ${formatNumber(state.upgradeCost * upgrade.rarity.valueOf())})`}
+                            </HUDButton>
+                        ))}
+                    </div>
+                    <div className="text-sm text-gray-400">
+                        Upgrades will refresh in {5 - (state.level % 5)} levels.
+                    </div>
+                </div>
+            )}
             <HUDButton onClick={() => dispatch({ type: ActionTypes.NEXT_LEVEL })}>
                 Next Level
             </HUDButton>
