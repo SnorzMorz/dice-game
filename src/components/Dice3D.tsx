@@ -1,8 +1,6 @@
-import { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { Html } from '@react-three/drei';
-import { dampE } from 'maath/easing';
-import { Mesh } from 'three';
+import { RigidBody, RapierRigidBody } from '@react-three/rapier';
+import { Euler, Matrix4, Quaternion, Vector3 } from 'three';
+import { useCallback, useEffect, useRef } from 'react';
 import { DiceLevels } from '@/constants/diceLevels';
 
 const ROTATE_SMOOTH = 0.15;      // seconds to reach 63 % of the target
@@ -97,6 +95,7 @@ const FACE_LOOKUP: Record<DiceLevels, Record<number, [number, number, number]>> 
     },
 };
 
+
 interface Dice3DProps {
     value: number; // The rolled value of the die
     level: DiceLevels; // The level of the die (1 = 6-sided, 2 = 8-sided, etc.)
@@ -104,21 +103,91 @@ interface Dice3DProps {
     color?: string; // Optional highlight colour for the die
 }
 
-export default function Dice3D({ value, level, position, color }: Dice3DProps) {
-    const mesh = useRef<Mesh>(null);
-    useFrame((_state, delta) => {
-        if (!mesh.current) return;
-        const [rx, ry, rz] = FACE_LOOKUP[level][value];
-        dampE(mesh.current.rotation, [rx, ry, rz], ROTATE_SMOOTH, delta);
-    });
+const throwHeight = 4;   // metres
+const throwImpulse = 8;   // N·s  (tune to taste)
+const throwSpin = 25;  // rad s-¹
+
+export default function Dice3D({
+    value,
+    level,
+    color,
+    onSettled,          // ← callback when the die falls asleep
+}: Dice3DProps & { onSettled?: (v: number) => void }) {
+
+    const body = useRef<RapierRigidBody>(null!);
+
+    /** Convert rapier quaternion to the face pointing most closely up */
+    const quaternionToValue = useCallback(
+        (q: Quaternion): number => {
+            const m = new Matrix4().makeRotationFromQuaternion(q);
+            const up = new Vector3(0, 1, 0).applyMatrix4(m); // die’s local-up in world space
+
+            let bestFace = 1;
+            let bestDot = -Infinity;
+
+            for (const [face, angles] of Object.entries(FACE_LOOKUP[level])) {
+                const n = new Vector3(0, 1, 0).applyEuler(new Euler(...angles));
+                const d = n.dot(up);
+                if (d > bestDot) {
+                    bestDot = d;
+                    bestFace = +face;
+                }
+            }
+            return bestFace;
+        },
+        [level],
+    );
+
+    /** Throw whenever `value` changes */
+    useEffect(() => {
+        if (!body.current) return;
+
+        // Reset pose high above the table
+        body.current.setTranslation({ x: 0, y: throwHeight, z: 0 }, true);
+        body.current.setLinvel(
+            {
+                x: (Math.random() - 0.5) * throwImpulse,
+                y: -throwImpulse * 0.5,
+                z: (Math.random() - 0.5) * throwImpulse,
+            },
+            true,
+        );
+        body.current.setAngvel(
+            {
+                x: (Math.random() - 0.5) * throwSpin,
+                y: (Math.random() - 0.5) * throwSpin,
+                z: (Math.random() - 0.5) * throwSpin,
+            },
+            true,
+        );
+    }, [value]);
+
+    /* Called automatically by Rapier when the body dozes off */
+    const handleSleep = () => {
+        const q = body.current.rotation();           // {x,y,z,w} in world space
+        const face = quaternionToValue(
+            new Quaternion(q.x, q.y, q.z, q.w),
+        );
+        onSettled?.(face);
+    };
+
     return (
-        <group position={position}>
-            <mesh ref={mesh} castShadow>
-                {level === DiceLevels.LEVEL_1 && <boxGeometry args={[1, 1, 1]} />} {/* 6-sided die */}
-                {level === DiceLevels.LEVEL_2 && <octahedronGeometry args={[1]} />} {/* 8-sided die */}
-                {level === DiceLevels.LEVEL_3 && <dodecahedronGeometry args={[1]} />} {/* 12-sided die */}
-                {level === DiceLevels.LEVEL_4 && <icosahedronGeometry args={[1]} />} {/* 20-sided die */}
-                {level === DiceLevels.LEVEL_5 && <tetrahedronGeometry args={[1]} />} {/* 30-sided die */}
+        <RigidBody
+            ref={body}
+            colliders="hull"          // convex hull works for d6/d8/d12/d20
+            restitution={0.1}
+            friction={0.6}
+            onSleep={handleSleep}     // ← event supplied by react-three-rapier v2
+        >
+            <mesh castShadow>
+                {level === DiceLevels.LEVEL_1 && <boxGeometry args={[1, 1, 1]} />}
+                {level === DiceLevels.LEVEL_2 && <octahedronGeometry args={[1]} />}
+                {level === DiceLevels.LEVEL_3 && <dodecahedronGeometry args={[1]} />}
+                {level === DiceLevels.LEVEL_4 && <icosahedronGeometry args={[1]} />}
+
+                {/* NOTE: Level 5 → 30-sided.  TetrahedronGeometry has only 4 faces.  
+                 Import a rhombic-triacontahedron mesh or build one manually. */}
+
                 <meshStandardMaterial
                     color={color}
                     emissive={color}
@@ -127,11 +196,6 @@ export default function Dice3D({ value, level, position, color }: Dice3DProps) {
                     metalness={0.1}
                 />
             </mesh>
-            <Html center distanceFactor={8}>
-                <div>
-                    <span className="text-2xl font-bold text-white drop-shadow-lg">{value}</span>
-                </div>
-            </Html>
-        </group>
+        </RigidBody>
     );
 }
