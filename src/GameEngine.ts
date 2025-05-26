@@ -2,7 +2,6 @@ import { selectUpgrades } from './utils/selectUpgrades';
 import { upgrades } from './constants/upgrades/upgrades';
 import { GameState } from './models/GameState';
 import { Upgrade } from './models/Upgrade';
-import { DICE_COMBO_COLORS } from './constants/diceColors';
 import { ActionTypes } from './constants/actions';
 import { Phases } from './constants/phases';
 import { Die } from './models/Die';

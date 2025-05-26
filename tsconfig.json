@@ -1,10 +1,15 @@
 {
     "compilerOptions": {
+        "noImplicitAny": true,
+        "exactOptionalPropertyTypes": true,
+        "noFallthroughCasesInSwitch": true,
+        "strictNullChecks": true,
+        "useUnknownInCatchVariables": true,
+        "moduleResolution": "bundler",
         "target": "ESNext",
         "module": "ESNext",
         "jsx": "react-jsx",
         "strict": true,
-        "moduleResolution": "node",
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,

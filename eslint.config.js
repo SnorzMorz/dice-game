@@ -36,3 +36,11 @@ export default [
     },
   },
 ];
+
+module.exports = {
+  extends: ['next', 'plugin:@typescript-eslint/recommended'],
+  rules: {
+    '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+  },
+};

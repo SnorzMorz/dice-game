@@ -2,32 +2,24 @@ import { DiceLevels } from "@/constants/diceLevels";
 import { getNextDiceLevel } from "@/utils/getNextDiceLevel";
 
 export class Die {
-    value: number;
-    level: DiceLevels;
-    color: string;
-    multiplier: number;
+    readonly value: number;
 
     constructor(
-        level: DiceLevels = DiceLevels.LEVEL_1,
-        color: string = '#555',
-        value?: number,
-        multiplier: number = 1,
+        public readonly level: DiceLevels = DiceLevels.LEVEL_1,
+        public readonly color: string = '#555',
+        private readonly _value?: number,
+        public readonly multiplier: number = 1,
         maximumRoll: number = DiceLevels.LEVEL_5.valueOf(),
         minimumRoll: number = 1
     ) {
         this.level = level;
-        this.color = color;
-        this.multiplier = multiplier;
-
-
         const levelMaxRoll = this.level.valueOf();
         const effectiveMaxRoll = Math.min(levelMaxRoll, maximumRoll);
-
-        this.value = value !== undefined
-            ? value
+        this.color = color;
+        this.multiplier = multiplier;
+        this.value = _value !== undefined
+            ? _value
             : Math.floor(Math.random() * (effectiveMaxRoll - minimumRoll + 1)) + minimumRoll;
-
-        console.log(this.value, level, color, multiplier);
     }
 
 
